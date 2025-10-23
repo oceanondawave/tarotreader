@@ -1,5 +1,7 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { tarotFacts } from "../data/tarotFacts";
 
 const springTransition = {
   type: "spring",
@@ -8,7 +10,28 @@ const springTransition = {
 };
 
 function ThinkingAnimation() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [currentFactIndex, setCurrentFactIndex] = useState(
+    Math.floor(Math.random() * 25)
+  );
+
+  // Get facts in current language
+  const facts = tarotFacts[language] || tarotFacts.en;
+
+  // Show random facts every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentFactIndex((prevIndex) => {
+        let newIndex;
+        do {
+          newIndex = Math.floor(Math.random() * facts.length);
+        } while (newIndex === prevIndex && facts.length > 1); // Avoid showing same fact twice
+        return newIndex;
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [facts.length]);
 
   return (
     <motion.div
@@ -38,8 +61,8 @@ function ThinkingAnimation() {
 
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 1, 1, 0.8] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
         <motion.h3
           className="thinking-text"
@@ -53,6 +76,26 @@ function ThinkingAnimation() {
           {t("thinkingTitle")}
         </motion.h3>
         <p className="thinking-subtext">{t("thinkingSubtext")}</p>
+
+        {/* Rotating facts */}
+        <div className="facts-container">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentFactIndex}
+              className="fact-text"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+            >
+              💫 {facts[currentFactIndex]}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </motion.div>
 
       {/* Floating particles with enhanced animation */}

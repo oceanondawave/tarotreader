@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import QuestionStep from "./components/QuestionStep";
 import CardSelection from "./components/CardSelection";
 import ThinkingAnimation from "./components/ThinkingAnimation";
 import AnswerDisplay from "./components/AnswerDisplay";
-import QuestionModal from "./components/QuestionModal";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import StepNavigation from "./components/StepNavigation";
+import ConfirmationModal from "./components/ConfirmationModal";
+import CardVerification from "./components/CardVerification";
 import { useLanguage } from "./contexts/LanguageContext";
 import { getTarotReading } from "./services/openRouterService";
 import "./styles/App.css";
@@ -24,44 +27,107 @@ const pageTransition = {
 
 function App() {
   const { t, language } = useLanguage();
-  const [selectedCards, setSelectedCards] = useState([]);
+  const [showVerification, setShowVerification] = useState(false);
+  const [step, setStep] = useState(1); // 1: question, 2: cards, 3: thinking, 4: answer
   const [question, setQuestion] = useState("");
-  const [stage, setStage] = useState("selection"); // selection, modal, thinking, answer
+  const [selectedCards, setSelectedCards] = useState([]);
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
 
-  const handleSubmit = () => {
-    if (!question.trim()) {
-      setError(t("errorEnterQuestion"));
+  // Check for #verify in URL
+  useEffect(() => {
+    const checkHash = () => {
+      setShowVerification(window.location.hash === "#verify");
+    };
+
+    checkHash();
+    window.addEventListener("hashchange", checkHash);
+
+    return () => window.removeEventListener("hashchange", checkHash);
+  }, []);
+
+  // Memoize particles to prevent regeneration on re-renders
+  const particles = useMemo(() => {
+    return [...Array(50)].map((_, i) => ({
+      id: i,
+      startX: Math.random() * 100,
+      startY: Math.random() * 100,
+      twinkleDuration: 5 + Math.random() * 10,
+      size: 2 + Math.random() * 3,
+      delay: Math.random() * 5,
+    }));
+  }, []);
+
+  const handleContinueToCards = () => {
+    setStep(2);
+    setSelectedCards([]); // Reset cards when moving to step 2
+  };
+
+  const handleBackToQuestion = () => {
+    // If there are selected cards, show confirmation
+    if (selectedCards.length > 0) {
+      setPendingNavigation("step1");
+      setShowConfirmModal(true);
+    } else {
+      setStep(1);
+    }
+  };
+
+  const handleStepClick = (stepNumber) => {
+    // Allow clicking on step 1
+    if (stepNumber === 1) {
+      handleBackToQuestion();
+    }
+    // Allow clicking step 2 if question is filled
+    if (stepNumber === 2 && question.trim()) {
+      setStep(2);
+      setSelectedCards([]); // Reset cards when navigating to step 2
+    }
+  };
+
+  const handleConfirmReset = () => {
+    setSelectedCards([]);
+    setStep(1);
+    setShowConfirmModal(false);
+    setPendingNavigation(null);
+  };
+
+  const handleCancelReset = () => {
+    setShowConfirmModal(false);
+    setPendingNavigation(null);
+  };
+
+  const handleSubmitReading = () => {
+    if (selectedCards.length !== 3) {
+      setError(t("errorSelectCards"));
       return;
     }
 
     setError("");
-    setShowModal(false);
-    setStage("thinking");
+    setStep(3);
 
     getTarotReading(selectedCards, question, language)
       .then((reading) => {
         setAnswer(reading);
         setTimeout(() => {
-          setStage("answer");
+          setStep(4);
         }, 2000);
       })
       .catch((err) => {
         console.error("Error:", err);
         setError(err.message || t("errorReading"));
-        setStage("selection");
+        setStep(2);
       });
   };
 
   const handleNewReading = () => {
-    setSelectedCards([]);
     setQuestion("");
+    setSelectedCards([]);
     setAnswer("");
     setError("");
-    setStage("selection");
-    setShowModal(false);
+    setStep(1);
 
     // Scroll to top smoothly
     window.scrollTo({
@@ -70,50 +136,70 @@ function App() {
     });
   };
 
-  // Show modal when 3 cards are selected
-  useEffect(() => {
-    if (selectedCards.length === 3 && stage === "selection") {
-      setShowModal(true);
-    }
-  }, [selectedCards.length, stage]);
+  // Show verification page if #verify in URL
+  if (showVerification) {
+    return <CardVerification />;
+  }
 
   return (
     <>
       {/* Language Switcher */}
       <LanguageSwitcher />
 
-      {/* Question Modal - render at root level */}
-      <QuestionModal
-        isOpen={showModal}
-        question={question}
-        selectedCards={selectedCards}
-        onQuestionChange={setQuestion}
-        onConfirm={handleSubmit}
-        onCancel={() => setShowModal(false)}
+      {/* View All Cards Button */}
+      <div className="view-all-cards-button-container">
+        <motion.a
+          href="#verify"
+          className="view-all-cards-button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          🃏 {t("viewAllCards")}
+        </motion.a>
+      </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onConfirm={handleConfirmReset}
+        onCancel={handleCancelReset}
       />
 
       <div className="app">
-        {/* Floating particles background */}
+        {/* Step Navigation - only show on steps 1 and 2 */}
+        {(step === 1 || step === 2) && (
+          <StepNavigation
+            currentStep={step}
+            onStepClick={handleStepClick}
+            hasQuestion={question.trim().length > 0}
+          />
+        )}
+        {/* Twinkling stars background */}
         <div className="particles">
-          {[...Array(30)].map((_, i) => (
+          {particles.map((particle) => (
             <motion.div
-              key={i}
-              className="particle"
+              key={particle.id}
+              className="particle star"
               style={{
-                left: `${Math.random() * 100}%`,
-                bottom: 0,
+                left: `${particle.startX}%`,
+                top: `${particle.startY}%`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
               }}
               animate={{
-                y: [0, -window.innerHeight - 50],
-                x: [0, (Math.random() - 0.5) * 250],
-                opacity: [0, 0.7, 0],
-                scale: [0.5, 1, 0.5],
+                opacity: [0.2, 1, 0.2],
+                scale: [0.8, 1.2, 0.8],
+                boxShadow: [
+                  "0 0 2px rgba(157, 78, 221, 0.3)",
+                  "0 0 8px rgba(157, 78, 221, 0.8), 0 0 12px rgba(157, 78, 221, 0.5)",
+                  "0 0 2px rgba(157, 78, 221, 0.3)",
+                ],
               }}
               transition={{
-                duration: 10 + Math.random() * 6,
+                duration: particle.twinkleDuration,
                 repeat: Infinity,
-                delay: Math.random() * 8,
-                ease: [0.42, 0, 0.58, 1],
+                delay: particle.delay,
+                ease: "easeInOut",
               }}
             />
           ))}
@@ -173,23 +259,35 @@ function App() {
           )}
 
           <AnimatePresence mode="wait">
-            {stage === "selection" && (
+            {step === 1 && (
+              <motion.div key="question" {...pageTransition}>
+                <QuestionStep
+                  question={question}
+                  onQuestionChange={setQuestion}
+                  onContinue={handleContinueToCards}
+                />
+              </motion.div>
+            )}
+
+            {step === 2 && (
               <motion.div key="selection" {...pageTransition}>
                 <CardSelection
                   selectedCards={selectedCards}
                   onCardSelect={setSelectedCards}
+                  onBack={handleBackToQuestion}
+                  onSubmit={handleSubmitReading}
                   maxCards={3}
                 />
               </motion.div>
             )}
 
-            {stage === "thinking" && (
+            {step === 3 && (
               <motion.div key="thinking" {...pageTransition}>
                 <ThinkingAnimation />
               </motion.div>
             )}
 
-            {stage === "answer" && (
+            {step === 4 && (
               <motion.div key="answer" {...pageTransition}>
                 <AnswerDisplay
                   cards={selectedCards}

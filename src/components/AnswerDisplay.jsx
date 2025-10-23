@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
@@ -9,17 +10,69 @@ const springTransition = {
 
 function AnswerDisplay({ cards, answer, question, onNewReading }) {
   const { t } = useLanguage();
+  const [copied, setCopied] = useState(false);
 
-  // Simple markdown parser for bold and italic
+  const handleCopyResult = async () => {
+    try {
+      await navigator.clipboard.writeText(answer);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
+  // Enhanced markdown parser for bold, italic, headers, and more
   const parseMarkdown = (text) => {
-    return text.split(/(\*\*.*?\*\*|\*.*?\*)/g).map((part, index) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={index}>{part.slice(2, -2)}</strong>;
-      } else if (part.startsWith("*") && part.endsWith("*")) {
-        return <em key={index}>{part.slice(1, -1)}</em>;
-      }
-      return part;
-    });
+    return text
+      .split(/(\*\*.*?\*\*|\*.*?\*|#{1,6}.*$|`.*?`|~~.*?~~)/gm)
+      .map((part, index) => {
+        // Bold text
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
+        }
+        // Italic text
+        else if (part.startsWith("*") && part.endsWith("*")) {
+          return <em key={index}>{part.slice(1, -1)}</em>;
+        }
+        // Strikethrough text
+        else if (part.startsWith("~~") && part.endsWith("~~")) {
+          return (
+            <del key={index} className="markdown-del">
+              {part.slice(2, -2)}
+            </del>
+          );
+        }
+        // Inline code
+        else if (part.startsWith("`") && part.endsWith("`")) {
+          return (
+            <code key={index} className="markdown-code">
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        // Headers
+        else if (part.startsWith("###")) {
+          return (
+            <h3 key={index} className="markdown-h3">
+              {part.slice(3).trim()}
+            </h3>
+          );
+        } else if (part.startsWith("##")) {
+          return (
+            <h2 key={index} className="markdown-h2">
+              {part.slice(2).trim()}
+            </h2>
+          );
+        } else if (part.startsWith("#")) {
+          return (
+            <h1 key={index} className="markdown-h1">
+              {part.slice(1).trim()}
+            </h1>
+          );
+        }
+        return part;
+      });
   };
 
   return (
@@ -101,6 +154,35 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
               {parseMarkdown(paragraph)}
             </p>
           ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="action-buttons">
+          <motion.button
+            className="donation-button"
+            onClick={() => {
+              window.open("https://me.momo.vn/oceanondawave");
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, ...springTransition }}
+          >
+            ☕ {t("buyCoffee")}
+          </motion.button>
+
+          <motion.button
+            className="copy-button"
+            onClick={handleCopyResult}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.3, ...springTransition }}
+          >
+            {copied ? `✓ ${t("copied")}` : `📋 ${t("copyResult")}`}
+          </motion.button>
         </div>
       </motion.div>
 

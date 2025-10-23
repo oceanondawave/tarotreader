@@ -63,7 +63,7 @@ Please respond ENTIRELY in ENGLISH.`;
 Please provide the reading now:`;
 
   const requestBody = {
-    model: "google/gemma-3n-e2b-it:free",
+    model: "mistralai/mistral-small-3.2-24b-instruct:free",
     messages: [
       {
         role: "user",
