@@ -1363,7 +1363,9 @@ select option:checked {
 @media (max-width: 480px) {
   .view-all-cards-button-container {
     bottom: 0.5rem; /* Same level as language switcher */
-    left: calc(50% - 3.5rem); /* Position to the left of center */
+    left: calc(
+      50% - 4.5rem
+    ); /* Position to the left of center with more spacing */
     right: auto;
     transform: translateX(-50%);
   }
@@ -1374,12 +1376,32 @@ select option:checked {
   }
 
   .language-switcher {
-    bottom: 0.5rem;
-    left: calc(50% + 3.5rem); /* Position to the right of center */
+    bottom: 0.5rem; /* Exact same bottom position */
+    left: calc(
+      50% + 4.5rem
+    ); /* Position to the right of center with more spacing */
     right: auto;
     transform: translateX(-50%);
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .view-all-cards-button-container {
+    bottom: 0.5rem;
+    left: calc(50% - 5rem); /* Even more spacing for very small screens */
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .language-switcher {
+    bottom: 0.5rem; /* Exact same bottom position */
+    left: calc(50% + 5rem); /* Even more spacing for very small screens */
+    right: auto;
+    transform: translateX(-50%);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
   }
 }
 
