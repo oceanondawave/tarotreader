@@ -143,19 +143,20 @@ function App() {
 
   return (
     <>
-      {/* Language Switcher */}
-      <LanguageSwitcher />
+      {/* Bottom Action Buttons */}
+      <div className="bottom-actions">
+        <LanguageSwitcher />
 
-      {/* View All Cards Button */}
-      <div className="view-all-cards-button-container">
-        <motion.a
-          href="#verify"
-          className="view-all-cards-button"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          🃏 {t("viewAllCards")}
-        </motion.a>
+        <div className="view-all-cards-button-container">
+          <motion.a
+            href="#verify"
+            className="view-all-cards-button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            🃏 {t("viewAllCards")}
+          </motion.a>
+        </div>
       </div>
 
       {/* Confirmation Modal */}

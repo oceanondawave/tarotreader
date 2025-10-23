@@ -1313,16 +1313,26 @@ select option:checked {
   box-shadow: 0 10px 30px rgba(157, 78, 221, 0.3);
 }
 
-/* View All Cards Button */
-.view-all-cards-button-container {
+/* Bottom Action Buttons Container */
+.bottom-actions {
   position: fixed;
-  bottom: 6rem; /* Position above the language switcher */
+  bottom: 2rem;
   right: 2rem;
+  display: flex;
+  gap: 1rem;
   z-index: 50;
 }
 
+/* View All Cards Button */
+.view-all-cards-button-container {
+  position: relative;
+  bottom: auto;
+  right: auto;
+}
+
 .view-all-cards-button {
-  display: inline-block;
+  display: flex;
+  align-items: center;
   padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
   color: white;
@@ -1342,81 +1352,88 @@ select option:checked {
 }
 
 /* Hide button when navigation bar is visible to avoid clutter */
-.app:has(.step-navigation-bar) .view-all-cards-button-container {
+.app:has(.step-navigation-bar) .bottom-actions {
   display: none;
 }
 
 @media (max-width: 768px) {
-  .view-all-cards-button-container {
-    bottom: 1rem; /* Same level as language switcher */
-    left: calc(50% - 4rem); /* Position to the left of center */
+  .bottom-actions {
+    bottom: 0.5rem;
+    left: 50%;
     right: auto;
     transform: translateX(-50%);
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
   }
 
   .view-all-cards-button {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .language-switcher {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.75rem !important;
   }
 }
 
 @media (max-width: 480px) {
-  .view-all-cards-button-container {
-    bottom: 0.5rem; /* Same level as language switcher */
-    left: calc(
-      50% - 4.5rem
-    ); /* Position to the left of center with more spacing */
+  .bottom-actions {
+    bottom: 0.3rem;
+    left: 50%;
     right: auto;
     transform: translateX(-50%);
+    flex-direction: row;
+    gap: 0.4rem;
+    align-items: center;
   }
 
   .view-all-cards-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
   }
 
   .language-switcher {
-    bottom: 0.5rem; /* Exact same bottom position */
-    left: calc(
-      50% + 4.5rem
-    ); /* Position to the right of center with more spacing */
-    right: auto;
-    transform: translateX(-50%);
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.7rem !important;
   }
 }
 
 @media (max-width: 375px) {
-  .view-all-cards-button-container {
-    bottom: 0.5rem;
-    left: calc(50% - 5rem); /* Even more spacing for very small screens */
+  .bottom-actions {
+    bottom: 0.2rem;
+    left: 50%;
     right: auto;
     transform: translateX(-50%);
+    flex-direction: row;
+    gap: 0.3rem;
+    align-items: center;
+  }
+
+  .view-all-cards-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.65rem;
   }
 
   .language-switcher {
-    bottom: 0.5rem; /* Exact same bottom position */
-    left: calc(50% + 5rem); /* Even more spacing for very small screens */
-    right: auto;
-    transform: translateX(-50%);
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.65rem !important;
   }
 }
 
 /* Language Switcher */
 .language-switcher {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  position: relative;
+  bottom: auto;
+  right: auto;
   background: var(--bg-card);
   border: 2px solid var(--accent-primary);
   border-radius: 50px;
-  padding: 0.7rem 1.3rem;
+  padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.4rem;
   cursor: pointer;
   z-index: 100;
   box-shadow: 0 4px 20px var(--shadow);
@@ -1715,14 +1732,5 @@ select option:checked {
   .modal-card-image-container {
     max-width: 200px;
     margin: 0 auto;
-  }
-
-  .language-switcher {
-    bottom: 1rem;
-    left: calc(50% + 4rem); /* Position to the right of center */
-    right: auto;
-    transform: translateX(-50%);
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
   }
 }
