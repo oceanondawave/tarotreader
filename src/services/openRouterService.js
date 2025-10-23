@@ -1,9 +1,9 @@
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // Free models you can try:
+// - "google/gemma-3n-e2b-it:free" (FREE, Google's latest, good quality)
 // - "openai/gpt-oss-20b:free" (FREE, good for general tasks)
 // - "deepseek/deepseek-chat-v3.1:free" (FREE, fast, good quality)
-// - "google/gemini-pro-1.5" (FREE alternative)
 // - "anthropic/claude-3.5-sonnet:beta" (paid, most capable)
 
 export async function getTarotReading(cards, question, language = "vi") {
@@ -63,7 +63,7 @@ Please respond ENTIRELY in ENGLISH.`;
 Please provide the reading now:`;
 
   const requestBody = {
-    model: "openai/gpt-oss-20b:free",
+    model: "google/gemma-3n-e2b-it:free",
     messages: [
       {
         role: "user",
