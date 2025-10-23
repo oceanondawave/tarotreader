@@ -1349,7 +1349,7 @@ select option:checked {
 @media (max-width: 768px) {
   .view-all-cards-button-container {
     bottom: 1rem; /* Same level as language switcher */
-    left: calc(50% - 3rem); /* Position to the left of center */
+    left: calc(50% - 4rem); /* Position to the left of center */
     right: auto;
     transform: translateX(-50%);
   }
@@ -1363,7 +1363,7 @@ select option:checked {
 @media (max-width: 480px) {
   .view-all-cards-button-container {
     bottom: 0.5rem; /* Same level as language switcher */
-    left: calc(50% - 2.5rem); /* Position to the left of center */
+    left: calc(50% - 3.5rem); /* Position to the left of center */
     right: auto;
     transform: translateX(-50%);
   }
@@ -1375,7 +1375,7 @@ select option:checked {
 
   .language-switcher {
     bottom: 0.5rem;
-    left: calc(50% + 2.5rem); /* Position to the right of center */
+    left: calc(50% + 3.5rem); /* Position to the right of center */
     right: auto;
     transform: translateX(-50%);
     padding: 0.4rem 0.8rem;
@@ -1697,7 +1697,7 @@ select option:checked {
 
   .language-switcher {
     bottom: 1rem;
-    left: calc(50% + 3rem); /* Position to the right of center */
+    left: calc(50% + 4rem); /* Position to the right of center */
     right: auto;
     transform: translateX(-50%);
     padding: 0.5rem 1rem;
