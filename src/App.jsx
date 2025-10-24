@@ -9,7 +9,7 @@ import StepNavigation from "./components/StepNavigation";
 import ConfirmationModal from "./components/ConfirmationModal";
 import CardVerification from "./components/CardVerification";
 import { useLanguage } from "./contexts/LanguageContext";
-import { getTarotReading } from "./services/openRouterService";
+import { getTarotReading } from "./services/chutesService";
 import "./styles/App.css";
 
 const springTransition = {
