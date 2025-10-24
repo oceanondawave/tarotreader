@@ -958,6 +958,8 @@ select option:checked {
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(157, 78, 221, 0.2);
   flex-shrink: 0;
+  text-align: center;
+  line-height: 1;
 }
 
 .step-item.active .step-circle {
@@ -1021,6 +1023,8 @@ select option:checked {
     width: 45px;
     height: 45px;
     font-size: 1.1rem;
+    text-align: center;
+    line-height: 1;
   }
 
   .step-label {
@@ -1055,6 +1059,8 @@ select option:checked {
     height: 40px;
     font-size: 1rem;
     border-width: 2px;
+    text-align: center;
+    line-height: 1;
   }
 
   .step-label {
