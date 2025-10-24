@@ -71,6 +71,12 @@ function App() {
   const handleContinueToCards = () => {
     setStep(2);
     setSelectedCards([]); // Reset cards when moving to step 2
+
+    // Scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const handleBackToQuestion = () => {
@@ -80,6 +86,12 @@ function App() {
       setShowConfirmModal(true);
     } else {
       setStep(1);
+
+      // Scroll to top
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -92,6 +104,12 @@ function App() {
     if (stepNumber === 2 && question.trim()) {
       setStep(2);
       setSelectedCards([]); // Reset cards when navigating to step 2
+
+      // Scroll to top
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -100,6 +118,12 @@ function App() {
     setStep(1);
     setShowConfirmModal(false);
     setPendingNavigation(null);
+
+    // Scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const handleCancelReset = () => {
@@ -115,6 +139,12 @@ function App() {
 
     setError("");
     setStep(3);
+
+    // Scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
 
     getTarotReading(selectedCards, question, language)
       .then((reading) => {
