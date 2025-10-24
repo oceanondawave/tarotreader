@@ -1,19 +1,19 @@
-const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-
-// Free models you can try:
-// - "google/gemma-3n-e2b-it:free" (FREE, Google's latest, good quality)
-// - "openai/gpt-oss-20b:free" (FREE, good for general tasks)
-// - "deepseek/deepseek-chat-v3.1:free" (FREE, fast, good quality)
-// - "anthropic/claude-3.5-sonnet:beta" (paid, most capable)
+import OpenAI from "openai";
 
 export async function getTarotReading(cards, question, language = "vi") {
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const openRouterApiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
-  if (!apiKey || apiKey === "your_api_key_here") {
+  if (!openaiApiKey || openaiApiKey === "your_api_key_here") {
     throw new Error(
-      "OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to your .env file."
+      "OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your .env file."
     );
   }
+
+  const openai = new OpenAI({
+    apiKey: openaiApiKey,
+    dangerouslyAllowBrowser: true, // Only for client-side usage
+  });
 
   const cardDescriptions = cards
     .map((card) => {
@@ -62,52 +62,91 @@ Please respond ENTIRELY in ENGLISH.`;
 
 Please provide the reading now:`;
 
-  const requestBody = {
-    model: "mistralai/mistral-small-3.2-24b-instruct:free",
-    messages: [
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  };
-
-  console.log("Sending request to OpenRouter:", {
-    url: OPENROUTER_API_URL,
-    model: requestBody.model,
-  });
+  console.log("Attempting OpenAI API first...");
 
   try {
-    const response = await fetch(OPENROUTER_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": window.location.origin,
-        "X-Title": "Mystical Tarot Reader",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
+    // Try OpenAI API first using the responses.create method
+    const response = await openai.responses.create({
+      model: "gpt-4.1",
+      input: prompt,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    if (
+      !response.output ||
+      !response.output[0] ||
+      !response.output[0].content
+    ) {
+      throw new Error("Unexpected API response format");
+    }
+
+    // Extract the text content from the response
+    const content = response.output[0].content[0];
+    if (content.type === "output_text") {
+      console.log("Successfully got response from OpenAI API");
+      return content.text;
+    } else {
+      throw new Error("Unexpected content type in response");
+    }
+  } catch (openaiError) {
+    console.error(
+      "OpenAI API failed, falling back to OpenRouter:",
+      openaiError
+    );
+
+    // Fallback to OpenRouter
+    if (!openRouterApiKey || openRouterApiKey === "your_api_key_here") {
+      throw new Error(
+        "Both OpenAI and OpenRouter API keys are not configured. Please add at least one API key to your .env file."
+      );
+    }
+
+    console.log("Falling back to OpenRouter API...");
+
+    const requestBody = {
+      model: "mistralai/mistral-small-3.2-24b-instruct:free",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    };
+
+    const fallbackResponse = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openRouterApiKey}`,
+          "HTTP-Referer": window.location.origin,
+          "X-Title": "Mystical Tarot Reader",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (!fallbackResponse.ok) {
+      const errorData = await fallbackResponse.json().catch(() => ({}));
       console.error("OpenRouter API Error:", errorData);
       throw new Error(
         errorData.error?.message ||
           errorData.message ||
-          `API request failed with status ${response.status}: ${response.statusText}`
+          `OpenRouter API request failed with status ${fallbackResponse.status}: ${fallbackResponse.statusText}`
       );
     }
 
-    const data = await response.json();
+    const fallbackData = await fallbackResponse.json();
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error("Unexpected API response format");
+    if (
+      !fallbackData.choices ||
+      !fallbackData.choices[0] ||
+      !fallbackData.choices[0].message
+    ) {
+      throw new Error("Unexpected OpenRouter API response format");
     }
 
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error("Error getting tarot reading:", error);
-    throw error;
+    console.log("Successfully got response from OpenRouter API");
+    return fallbackData.choices[0].message.content;
   }
 }

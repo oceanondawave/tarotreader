@@ -1,6 +1,6 @@
 # 🔮 Mystical Tarot Reader
 
-A beautiful, modern React web app that provides AI-powered tarot readings using the OpenRouter API. Features a complete 78-card Tarot deck with fluid animations and system dark mode support.
+A beautiful, modern React web app that provides AI-powered tarot readings using OpenAI API with OpenRouter fallback. Features a complete 78-card Tarot deck with fluid animations and system dark mode support.
 
 ## ✨ Features
 
@@ -10,7 +10,7 @@ A beautiful, modern React web app that provides AI-powered tarot readings using 
 - **Shuffled Mystery Selection**: Cards are shuffled and hidden - you won't know which cards you're choosing until revealed
 - **Interactive Card Selection**: Choose 3 face-down cards with fluid spring animations and hover effects
 - **Auto-Reveal Modal**: After selecting 3 cards, a modal automatically appears with beautiful card images and question input
-- **AI-Powered Readings**: Get personalized insights using Claude 3.5 Sonnet via OpenRouter
+- **AI-Powered Readings**: Get personalized insights using GPT-4.1 via OpenAI API with OpenRouter fallback
 - **System Dark Mode**: Automatically syncs with your system's light/dark theme preference
 - **Fluid UI Animations**: Spring physics-based animations for buttery smooth interactions
 - **Enhanced Thinking Animation**: Mesmerizing AI thinking animation with glowing orb and radiating particles
@@ -21,7 +21,8 @@ A beautiful, modern React web app that provides AI-powered tarot readings using 
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- An OpenRouter API key (get one at [openrouter.ai](https://openrouter.ai))
+- An OpenAI API key (get one at [platform.openai.com](https://platform.openai.com/api-keys)) - Primary
+- An OpenRouter API key (get one at [openrouter.ai](https://openrouter.ai)) - Fallback
 
 ### Installation
 
@@ -37,11 +38,14 @@ npm install
 cp .env.example .env
 ```
 
-3. Add your OpenRouter API key to the `.env` file:
+3. Add your API keys to the `.env` file:
 
 ```
-VITE_OPENROUTER_API_KEY=your_api_key_here
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
+
+**Note**: The app will try OpenAI API first, then fallback to OpenRouter if OpenAI fails. You need at least one API key configured.
 
 ### Running the App
 
@@ -93,7 +97,8 @@ The built files will be in the `dist` directory.
 - **React 18**: Modern React with hooks and Context API for language management
 - **Vite**: Lightning-fast build tool and HMR
 - **Framer Motion 11**: Advanced spring physics animations and gesture handling
-- **OpenRouter API**: AI-powered readings using Claude 3.5 Sonnet
+- **OpenAI API**: AI-powered readings using GPT-4.1 (primary)
+- **OpenRouter API**: Fallback AI readings using Mistral (fallback)
 - **Rider-Waite Tarot Deck**: Authentic tarot card images
 - **Noto Sans & Playfair Display**: Google Fonts optimized for Vietnamese
 - **CSS Custom Properties**: Modern styling with CSS variables and system theme detection
