@@ -38,6 +38,22 @@ function StepNavigation({ currentStep, onStepClick, hasQuestion }) {
                   isCompleted ? "completed" : ""
                 }`}
                 onClick={() => isClickable && onStepClick(step.number)}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && isClickable) {
+                    e.preventDefault();
+                    onStepClick(step.number);
+                  }
+                }}
+                role="button"
+                tabIndex={isClickable ? 0 : -1}
+                aria-label={`${step.label}, ${
+                  isActive
+                    ? t("current")
+                    : isCompleted
+                    ? t("completed")
+                    : t("notCompleted")
+                }`}
+                aria-current={isActive ? "step" : undefined}
                 whileHover={isClickable ? { scale: 1.05 } : {}}
                 whileTap={isClickable ? { scale: 0.95 } : {}}
                 style={{ cursor: isClickable ? "pointer" : "not-allowed" }}

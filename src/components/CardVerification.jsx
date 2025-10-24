@@ -60,6 +60,21 @@ function CardVerification() {
       <SuitSection titleKey="cups" cards={cups} color="#4ecdc4" />
       <SuitSection titleKey="swords" cards={swords} color="#95a3b3" />
       <SuitSection titleKey="pentacles" cards={pentacles} color="#6a994e" />
+
+      {/* Author Information */}
+      <div className="author-info">
+        <p>
+          By @oceanondawave / Powered by{" "}
+          <a
+            href="https://cursor.sh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cursor-link"
+          >
+            Cursor
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

@@ -257,6 +257,8 @@ function CardSelection({
           whileHover={{ scale: isShuffling ? 1 : 1.05 }}
           whileTap={{ scale: isShuffling ? 1 : 0.95 }}
           disabled={isShuffling}
+          aria-label={isShuffling ? t("shuffling") : t("shuffleButton")}
+          aria-disabled={isShuffling}
           style={{
             opacity: isShuffling ? 0.7 : 1,
             cursor: isShuffling ? "not-allowed" : "pointer",
@@ -270,6 +272,7 @@ function CardSelection({
           onClick={() => setShowQuickSelectModal(true)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          aria-label={t("quickSelectPlaceholder")}
         >
           🎯 {t("quickSelectPlaceholder")}
         </motion.button>
@@ -288,6 +291,24 @@ function CardSelection({
                 isFlipped ? "flipped" : ""
               } ${isDisabled ? "disabled" : ""}`}
               onClick={() => handleCardClick(card)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleCardClick(card);
+                }
+              }}
+              role="button"
+              tabIndex={isDisabled ? -1 : 0}
+              aria-label={`${t("cardLabelWithRow", {
+                position: index + 1,
+                row: Math.floor(index / 13) + 1,
+                totalRows: Math.ceil(shuffledCards.length / 13),
+                name: card.name,
+                status: isSelected ? t("selected") : t("unselected"),
+                disabled: isDisabled ? t("disabled") : "",
+              })}`}
+              aria-pressed={isSelected}
+              aria-disabled={isDisabled}
               custom={index}
               variants={cardVariants}
               initial="hidden"
@@ -441,6 +462,7 @@ function CardSelection({
           onClick={onBack}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          aria-label={t("backToQuestion")}
         >
           ← {t("backToQuestion")}
         </motion.button>
@@ -451,6 +473,8 @@ function CardSelection({
           disabled={selectedCards.length !== maxCards}
           whileHover={{ scale: selectedCards.length === maxCards ? 1.05 : 1 }}
           whileTap={{ scale: selectedCards.length === maxCards ? 0.95 : 1 }}
+          aria-label={t("revealReading")}
+          aria-disabled={selectedCards.length !== maxCards}
         >
           {t("revealReading")}
         </motion.button>
@@ -531,11 +555,12 @@ function CardSelection({
                     <p style={{ marginBottom: "0.5rem", fontWeight: "600" }}>
                       {t("selectedPositions", {
                         positions: selectedCards
-                          .map(
-                            (card) =>
+                          .map((card) => {
+                            const position =
                               shuffledCards.findIndex((c) => c.id === card.id) +
-                              1
-                          )
+                              1;
+                            return `${position}: ${card.name}`;
+                          })
                           .join(", "),
                       })}
                     </p>
@@ -626,6 +651,15 @@ function CardSelection({
                     parseInt(quickSelectInput) < 1 ||
                     parseInt(quickSelectInput) > shuffledCards.length
                   }
+                  aria-label={t("selectButton")}
+                  aria-disabled={
+                    !quickSelectInput ||
+                    quickSelectInput.trim() === "" ||
+                    quickSelectInput === "" ||
+                    isNaN(parseInt(quickSelectInput)) ||
+                    parseInt(quickSelectInput) < 1 ||
+                    parseInt(quickSelectInput) > shuffledCards.length
+                  }
                   style={{
                     opacity:
                       !quickSelectInput ||
@@ -652,6 +686,7 @@ function CardSelection({
                 <button
                   className="cancel-button"
                   onClick={() => setShowQuickSelectModal(false)}
+                  aria-label={t("doneButton")}
                 >
                   {t("doneButton")}
                 </button>

@@ -42,6 +42,15 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
         {t("questionStepSubtitle")}
       </motion.p>
 
+      <motion.p
+        className="privacy-notice"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.25 }}
+      >
+        🔒 {t("privacyNotice")}
+      </motion.p>
+
       <form onSubmit={handleSubmit}>
         <motion.textarea
           className="question-textarea"
@@ -63,6 +72,8 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
           transition={{ delay: 0.4, ...springTransition }}
           whileHover={{ scale: question.trim() ? 1.05 : 1 }}
           whileTap={{ scale: question.trim() ? 0.95 : 1 }}
+          aria-label={t("continueToCards")}
+          aria-disabled={!question.trim()}
         >
           {t("continueToCards")}
         </motion.button>

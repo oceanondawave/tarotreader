@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import html2canvas from "html2canvas";
 
 const springTransition = {
   type: "spring",
@@ -11,6 +12,8 @@ const springTransition = {
 function AnswerDisplay({ cards, answer, question, onNewReading }) {
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const answerSectionRef = useRef(null);
 
   const handleCopyResult = async () => {
     try {
@@ -19,6 +22,69 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy text: ", err);
+    }
+  };
+
+  const handleSaveScreenshot = async () => {
+    try {
+      if (!answerSectionRef.current) return;
+
+      // Create a temporary container with only the content we want to capture
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "absolute";
+      tempContainer.style.left = "-9999px";
+      tempContainer.style.top = "-9999px";
+      tempContainer.style.width = answerSectionRef.current.offsetWidth + "px";
+      tempContainer.style.backgroundColor = getComputedStyle(
+        document.body
+      ).backgroundColor;
+
+      // Clone the content we want (exclude action buttons and new reading button)
+      const titleElement = answerSectionRef.current.querySelector("h2");
+      const questionElement =
+        answerSectionRef.current.querySelector(".result-question");
+      const cardsElement =
+        answerSectionRef.current.querySelector(".result-cards");
+      const answerTextElement =
+        answerSectionRef.current.querySelector(".answer-text");
+
+      if (titleElement) tempContainer.appendChild(titleElement.cloneNode(true));
+      if (questionElement)
+        tempContainer.appendChild(questionElement.cloneNode(true));
+      if (cardsElement) tempContainer.appendChild(cardsElement.cloneNode(true));
+      if (answerTextElement)
+        tempContainer.appendChild(answerTextElement.cloneNode(true));
+
+      document.body.appendChild(tempContainer);
+
+      const canvas = await html2canvas(tempContainer, {
+        backgroundColor:
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--bg-primary"
+          ) || "#0a0a0a",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: 0,
+        width: tempContainer.offsetWidth,
+        height: tempContainer.offsetHeight,
+      });
+
+      // Clean up the temporary container
+      document.body.removeChild(tempContainer);
+
+      const link = document.createElement("a");
+      link.download = `tarot-reading-${new Date()
+        .toISOString()
+        .slice(0, 10)}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error("Failed to save screenshot: ", err);
     }
   };
 
@@ -77,6 +143,7 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
 
   return (
     <motion.div
+      ref={answerSectionRef}
       className="answer-section"
       initial={{ opacity: 0, y: 40, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -168,8 +235,22 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, ...springTransition }}
+            aria-label={t("buyCoffee")}
           >
             ☕ {t("buyCoffee")}
+          </motion.button>
+
+          <motion.button
+            className="screenshot-button"
+            onClick={handleSaveScreenshot}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.25, ...springTransition }}
+            aria-label={saved ? t("saved") : t("saveImage")}
+          >
+            {saved ? `✓ ${t("saved")}` : `📸 ${t("saveImage")}`}
           </motion.button>
 
           <motion.button
@@ -180,6 +261,7 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.3, ...springTransition }}
+            aria-label={copied ? t("copied") : t("copyResult")}
           >
             {copied ? `✓ ${t("copied")}` : `📋 ${t("copyResult")}`}
           </motion.button>
@@ -197,6 +279,7 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
           transition: { ...springTransition, stiffness: 400 },
         }}
         whileTap={{ scale: 0.95 }}
+        aria-label={t("newReadingButton")}
       >
         {t("newReadingButton")}
       </motion.button>

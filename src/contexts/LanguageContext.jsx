@@ -33,6 +33,18 @@ const translations = {
     copyResult: "Sao chép kết quả",
     copied: "Đã sao chép!",
     buyCoffee: "Tặng tác giả cà phê muối",
+    saveImage: "Lưu hình ảnh",
+    saved: "Đã lưu!",
+    cardLabel: "Lá bài {position}: {name}, {status}{disabled}",
+    cardLabelWithRow:
+      "Lá bài {position}, hàng {row} trong tổng số {totalRows} hàng: {name}, {status}{disabled}",
+    selected: "đã chọn",
+    unselected: "chưa chọn",
+    disabled: ", không thể chọn",
+    current: "hiện tại",
+    completed: "đã hoàn thành",
+    notCompleted: "chưa hoàn thành",
+    privacyNotice: "Không thu thập dữ liệu nào từ câu hỏi của bạn",
     revealReading: "Xem Kết Quả",
 
     // Modal
@@ -111,6 +123,18 @@ const translations = {
     copyResult: "Copy Result",
     copied: "Copied!",
     buyCoffee: "Buy author a coffee",
+    saveImage: "Save Image",
+    saved: "Saved!",
+    cardLabel: "Card {position}: {name}, {status}{disabled}",
+    cardLabelWithRow:
+      "Card {position}, row {row} of {totalRows}: {name}, {status}{disabled}",
+    selected: "selected",
+    unselected: "not selected",
+    disabled: ", disabled",
+    current: "current",
+    completed: "completed",
+    notCompleted: "not completed",
+    privacyNotice: "No data is collected from your question",
     revealReading: "Reveal Reading",
 
     // Modal

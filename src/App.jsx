@@ -48,6 +48,14 @@ function App() {
     return () => window.removeEventListener("hashchange", checkHash);
   }, []);
 
+  // Scroll to top on page refresh/load
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
+
   // Memoize particles to prevent regeneration on re-renders
   const particles = useMemo(() => {
     return [...Array(50)].map((_, i) => ({
@@ -300,6 +308,26 @@ function App() {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Author Information */}
+        <motion.div
+          className="author-info"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, ...springTransition }}
+        >
+          <p>
+            By @oceanondawave / Powered by{" "}
+            <a
+              href="https://cursor.sh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cursor-link"
+            >
+              Cursor
+            </a>
+          </p>
+        </motion.div>
       </div>
     </>
   );
