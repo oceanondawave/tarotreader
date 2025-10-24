@@ -38,6 +38,8 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
       tempContainer.style.backgroundColor = getComputedStyle(
         document.body
       ).backgroundColor;
+      tempContainer.style.padding = "2rem";
+      tempContainer.style.borderRadius = "12px";
 
       // Clone the content we want (exclude action buttons and new reading button)
       const titleElement = answerSectionRef.current.querySelector("h2");
@@ -59,9 +61,7 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
 
       const canvas = await html2canvas(tempContainer, {
         backgroundColor:
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--bg-primary"
-          ) || "#0a0a0a",
+          getComputedStyle(document.body).backgroundColor || "#0a0a0a",
         scale: 2,
         useCORS: true,
         allowTaint: true,
