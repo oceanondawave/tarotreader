@@ -29,7 +29,7 @@ Hãy cung cấp bài đọc với:
 2. Chỉ ra cách các lá bài liên quan với nhau
 3. Đưa ra lời khuyên và cái nhìn sâu sắc có ý nghĩa
 4. Được viết bằng giọng điệu huyền bí nhưng dễ hiểu
-5. Độ dài khoảng 3-4 đoạn văn
+5. Độ dài khoảng 2-3 đoạn văn ngắn gọn
 6. Sử dụng **in đậm** cho các tiêu đề và *in nghiêng* để nhấn mạnh các điểm quan trọng
 
 QUAN TRỌNG: Trả lời HOÀN TOÀN bằng TIẾNG VIỆT. Không dùng tiếng Anh.`
@@ -45,7 +45,7 @@ Provide a reading that:
 2. Shows how the cards relate to each other
 3. Offers meaningful guidance and insight
 4. Is written in a mystical yet accessible tone
-5. Is about 3-4 paragraphs long
+5. Is about 2-3 short paragraphs
 6. Use **bold** for headings and *italics* to emphasize important points
 
 Please respond ENTIRELY in ENGLISH.`;
@@ -58,7 +58,7 @@ Please provide the reading now:`;
 
   try {
     const requestBody = {
-      model: "meituan-longcat/LongCat-Flash-Chat-FP8",
+      model: "unsloth/gemma-3-4b-it",
       messages: [
         {
           role: "user",
