@@ -58,6 +58,8 @@ function CardSelection({
   const [showManualSelectModal, setShowManualSelectModal] = useState(false);
   const [quickSelectInput, setQuickSelectInput] = useState("");
   const modalRef = useRef(null);
+  const quickSelectInputRef = useRef(null);
+  const selectedCardsDisplayRef = useRef(null);
 
   // Initialize cards on mount
   useEffect(() => {
@@ -242,6 +244,14 @@ function CardSelection({
       return;
     }
     handleQuickSelect(number);
+    // Clear input and keep focus on it
+    setQuickSelectInput("");
+    // Use setTimeout to ensure the input ref is updated
+    setTimeout(() => {
+      if (quickSelectInputRef.current) {
+        quickSelectInputRef.current.focus();
+      }
+    }, 0);
   };
 
   const handleShuffle = () => {
@@ -256,7 +266,25 @@ function CardSelection({
   };
 
   const handleManualDone = () => {
+    // Close the modal
     setShowManualSelectModal(false);
+    // Focus on the selected cards display element in the menu screen
+    setTimeout(() => {
+      if (selectedCardsDisplayRef.current) {
+        selectedCardsDisplayRef.current.focus();
+      }
+    }, 100);
+  };
+
+  const handleQuickSelectDone = () => {
+    // Close the modal
+    setShowQuickSelectModal(false);
+    // Focus on the selected cards display element in the menu screen
+    setTimeout(() => {
+      if (selectedCardsDisplayRef.current) {
+        selectedCardsDisplayRef.current.focus();
+      }
+    }, 100);
   };
 
   // Show menu screen if no modal is open
@@ -328,8 +356,16 @@ function CardSelection({
 
           {selectedCards.length > 0 && (
             <motion.div
+              ref={selectedCardsDisplayRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              tabIndex={0}
+              role="status"
+              aria-live="polite"
+              aria-label={t("cardsSelected", {
+                selected: selectedCards.length,
+                total: maxCards,
+              })}
               style={{
                 background: "var(--bg-subtle)",
                 padding: "1rem",
@@ -447,6 +483,7 @@ function CardSelection({
 
             <div style={{ marginBottom: "1.5rem" }}>
               <input
+                ref={quickSelectInputRef}
                 type="number"
                 min="1"
                 max={shuffledCards.length}
@@ -456,9 +493,12 @@ function CardSelection({
                   const value = e.target.value.replace(/[^0-9]/g, "");
                   setQuickSelectInput(value);
                 }}
-                onKeyPress={(e) =>
-                  e.key === "Enter" && handleQuickSelectSubmit()
-                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleQuickSelectSubmit();
+                  }
+                }}
                 style={{
                   width: "100%",
                   padding: "0.75rem 1rem",
@@ -608,7 +648,7 @@ function CardSelection({
               </button>
               <button
                 className="cancel-button"
-                onClick={() => setShowQuickSelectModal(false)}
+                onClick={handleQuickSelectDone}
                 aria-label={t("doneButton")}
               >
                 {t("doneButton")}
