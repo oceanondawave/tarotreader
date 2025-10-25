@@ -146,8 +146,9 @@ function CardSelection({
     };
 
     if (showQuickSelectModal || showManualSelectModal) {
-      document.addEventListener("keydown", handleKeyDown, true); // Use capture phase
-      return () => document.removeEventListener("keydown", handleKeyDown, true);
+      document.addEventListener("keydown", handleKeyDown, false); // Use bubbling phase
+      return () =>
+        document.removeEventListener("keydown", handleKeyDown, false);
     }
   }, [showQuickSelectModal, showManualSelectModal]);
 
@@ -547,73 +548,77 @@ function CardSelection({
                 </div>
               )}
 
-              {/* Dropdown to remove selected cards */}
+              {/* Buttons to remove selected cards */}
               {selectedCards.length > 0 && (
                 <div style={{ marginBottom: "1rem" }}>
-                  <label
-                    htmlFor="card-remove-select"
+                  <p
                     style={{
-                      display: "block",
                       marginBottom: "0.5rem",
                       fontWeight: "600",
                       fontSize: "0.9rem",
                     }}
                   >
                     {t("removeCardLabel")}
-                  </label>
-                  <select
-                    id="card-remove-select"
-                    tabIndex="0"
-                    aria-label={t("removeCardLabel")}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        const cardId = parseInt(e.target.value);
-                        const card = selectedCards.find((c) => c.id === cardId);
-                        if (card) {
-                          // Remove from selection
-                          onCardSelect(
-                            selectedCards.filter((c) => c.id !== card.id)
-                          );
-                          // Also flip it back
-                          const newFlippedCards = new Set(flippedCards);
-                          newFlippedCards.delete(card.id);
-                          setFlippedCards(newFlippedCards);
-                        }
-                        e.target.value = ""; // Reset dropdown
-                      }
-                    }}
+                  </p>
+                  <div
                     style={{
-                      width: "100%",
-                      padding: "0.75rem 1rem",
-                      borderRadius: "8px",
-                      border: "2px solid var(--accent-primary)",
-                      background: "var(--bg-card)",
-                      color: "var(--text-primary)",
-                      fontSize: "1rem",
-                      fontFamily: "Playfair Display, serif",
-                      fontWeight: "600",
-                      outline: "none",
-                      appearance: "none",
-                      WebkitAppearance: "none",
-                      MozAppearance: "none",
-                      backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 0.7rem center",
-                      backgroundSize: "1rem",
-                      paddingRight: "2.5rem",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
                     }}
                   >
-                    <option value="">{t("selectCardToRemove")}</option>
                     {selectedCards.map((card) => {
                       const position =
                         shuffledCards.findIndex((c) => c.id === card.id) + 1;
                       return (
-                        <option key={card.id} value={card.id}>
+                        <button
+                          key={card.id}
+                          tabIndex={0}
+                          onClick={() => {
+                            // Remove from selection
+                            onCardSelect(
+                              selectedCards.filter((c) => c.id !== card.id)
+                            );
+                            // Also flip it back
+                            const newFlippedCards = new Set(flippedCards);
+                            newFlippedCards.delete(card.id);
+                            setFlippedCards(newFlippedCards);
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "0.75rem 1rem",
+                            borderRadius: "8px",
+                            border: "2px solid var(--accent-primary)",
+                            background: "var(--bg-card)",
+                            color: "var(--text-primary)",
+                            fontSize: "1rem",
+                            fontFamily: "Playfair Display, serif",
+                            fontWeight: "600",
+                            outline: "none",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                          aria-label={`${t("removeCardLabel")}: ${t(
+                            "positionLabel",
+                            {
+                              position,
+                              name: card.name,
+                            }
+                          )}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background =
+                              "var(--bg-subtle)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "var(--bg-card)";
+                          }}
+                        >
+                          ❌ {t("removeCardLabel")}{" "}
                           {t("positionLabel", { position, name: card.name })}
-                        </option>
+                        </button>
                       );
                     })}
-                  </select>
+                  </div>
                 </div>
               )}
             </div>
