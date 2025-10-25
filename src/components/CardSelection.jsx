@@ -549,6 +549,7 @@ function CardSelection({
                   <select
                     id="card-remove-select"
                     tabIndex="0"
+                    aria-label={t("removeCardLabel")}
                     onChange={(e) => {
                       if (e.target.value) {
                         const cardId = parseInt(e.target.value);
