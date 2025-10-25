@@ -508,6 +508,15 @@ function AnswerDisplay({
   const parseInlineMarkdown = (text) => {
     if (!text) return text;
 
+    // Check if browser supports lookbehind assertions (for older Safari compatibility)
+    let supportsLookbehind = false;
+    try {
+      new RegExp("(?<=test)");
+      supportsLookbehind = true;
+    } catch (e) {
+      supportsLookbehind = false;
+    }
+
     // First pass: handle links and images (these are more complex)
     text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (match, linkText, url) => {
       return `___LINK_START___${linkText}___LINK_URL___${url}___LINK_END___`;
@@ -524,107 +533,131 @@ function AnswerDisplay({
     let currentIndex = 0;
 
     // Find all markdown patterns (including placeholders for links/images)
-    const patterns = [
-      {
-        regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
-        type: "link",
-      },
-      {
-        regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
-        type: "image",
-      },
-      { regex: /\*\*(.*?)\*\*/g, type: "bold" },
-      { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
-      { regex: /~~(.*?)~~/g, type: "strikethrough" },
-      { regex: /`(.*?)`/g, type: "code" },
-    ];
+    // Use different patterns based on browser support
+    const patterns = supportsLookbehind
+      ? [
+          {
+            regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
+            type: "link",
+          },
+          {
+            regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
+            type: "image",
+          },
+          { regex: /\*\*(.*?)\*\*/g, type: "bold" },
+          { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
+          { regex: /~~(.*?)~~/g, type: "strikethrough" },
+          { regex: /`(.*?)`/g, type: "code" },
+        ]
+      : [
+          {
+            regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
+            type: "link",
+          },
+          {
+            regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
+            type: "image",
+          },
+          { regex: /\*\*(.*?)\*\*/g, type: "bold" },
+          // For older browsers, use a simpler italic pattern that avoids lookbehind
+          { regex: /\b\*([^*]+?)\*\b/g, type: "italic" },
+          { regex: /~~(.*?)~~/g, type: "strikethrough" },
+          { regex: /`(.*?)`/g, type: "code" },
+        ];
 
-    let allMatches = [];
-    patterns.forEach(({ regex, type }) => {
-      let match;
-      while ((match = regex.exec(text)) !== null) {
-        allMatches.push({
-          index: match.index,
-          length: match[0].length,
-          text: match[1],
-          url: match[2], // For links and images
-          type,
-        });
+    // Wrap parsing in try-catch for older browser compatibility
+    try {
+      let allMatches = [];
+      patterns.forEach(({ regex, type }) => {
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          allMatches.push({
+            index: match.index,
+            length: match[0].length,
+            text: match[1],
+            url: match[2], // For links and images
+            type,
+          });
+        }
+      });
+
+      // Sort matches by index
+      allMatches.sort((a, b) => a.index - b.index);
+
+      // Build result
+      let lastIndex = 0;
+      for (let i = 0; i < allMatches.length; i++) {
+        const match = allMatches[i];
+
+        // Add text before this match
+        if (match.index > lastIndex) {
+          parts.push(text.substring(lastIndex, match.index));
+        }
+
+        // Process nested patterns in the match text
+        const processedText = processNestedMarkdown(match.text, parts.length);
+
+        // Add the formatted content
+        switch (match.type) {
+          case "link":
+            parts.push(
+              <a
+                key={parts.length}
+                href={match.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="markdown-link"
+              >
+                {match.text}
+              </a>
+            );
+            break;
+          case "image":
+            parts.push(
+              <img
+                key={parts.length}
+                src={match.url}
+                alt={match.text}
+                className="markdown-image"
+              />
+            );
+            break;
+          case "bold":
+            parts.push(<strong key={parts.length}>{processedText}</strong>);
+            break;
+          case "italic":
+            parts.push(<em key={parts.length}>{processedText}</em>);
+            break;
+          case "strikethrough":
+            parts.push(
+              <del key={parts.length} className="markdown-del">
+                {processedText}
+              </del>
+            );
+            break;
+          case "code":
+            parts.push(
+              <code key={parts.length} className="markdown-code">
+                {processedText}
+              </code>
+            );
+            break;
+        }
+
+        lastIndex = match.index + match.length;
       }
-    });
 
-    // Sort matches by index
-    allMatches.sort((a, b) => a.index - b.index);
-
-    // Build result
-    let lastIndex = 0;
-    for (let i = 0; i < allMatches.length; i++) {
-      const match = allMatches[i];
-
-      // Add text before this match
-      if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
+      // Add remaining text
+      if (lastIndex < text.length) {
+        parts.push(text.substring(lastIndex));
       }
 
-      // Process nested patterns in the match text
-      const processedText = processNestedMarkdown(match.text, parts.length);
-
-      // Add the formatted content
-      switch (match.type) {
-        case "link":
-          parts.push(
-            <a
-              key={parts.length}
-              href={match.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="markdown-link"
-            >
-              {match.text}
-            </a>
-          );
-          break;
-        case "image":
-          parts.push(
-            <img
-              key={parts.length}
-              src={match.url}
-              alt={match.text}
-              className="markdown-image"
-            />
-          );
-          break;
-        case "bold":
-          parts.push(<strong key={parts.length}>{processedText}</strong>);
-          break;
-        case "italic":
-          parts.push(<em key={parts.length}>{processedText}</em>);
-          break;
-        case "strikethrough":
-          parts.push(
-            <del key={parts.length} className="markdown-del">
-              {processedText}
-            </del>
-          );
-          break;
-        case "code":
-          parts.push(
-            <code key={parts.length} className="markdown-code">
-              {processedText}
-            </code>
-          );
-          break;
-      }
-
-      lastIndex = match.index + match.length;
+      return parts.length > 0 ? parts : text;
+    } catch (error) {
+      // Fallback to simple text rendering if parsing fails
+      console.error("Markdown parsing error:", error);
+      return text;
     }
-
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
-    }
-
-    return parts.length > 0 ? parts : text;
   };
 
   // Recursively process nested markdown
