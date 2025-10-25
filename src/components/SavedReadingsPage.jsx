@@ -55,7 +55,18 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
     setError(null);
     try {
       const allReadings = await googleDriveService.getAllReadings();
-      setReadings(allReadings);
+
+      // Sort readings by date and time (newest first)
+      const sortedReadings = allReadings.sort((a, b) => {
+        // First compare by date
+        if (b.date !== a.date) {
+          return b.date.localeCompare(a.date); // Descending order (newest first)
+        }
+        // If same date, compare by time
+        return b.time.localeCompare(a.time); // Descending order (newest first)
+      });
+
+      setReadings(sortedReadings);
     } catch (err) {
       console.error("Error loading readings:", err);
       setError(err.message);
