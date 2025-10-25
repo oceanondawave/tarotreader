@@ -76,12 +76,22 @@ function AnswerDisplay({
   };
 
   // Helper function to remove markdown from text
+  // Compatible with older browsers (no lookbehind assertions)
   const removeMarkdown = (text) => {
     if (!text) return text;
 
-    return text
+    // Check if browser supports lookbehind assertions
+    let supportsLookbehind = false;
+    try {
+      new RegExp("(?<=test)");
+      supportsLookbehind = true;
+    } catch (e) {
+      supportsLookbehind = false;
+    }
+
+    // Basic markdown removal that works in all browsers
+    let result = text
       .replace(/\*\*(.*?)\*\*/g, "$1") // Bold
-      .replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "$1") // Italic (not bold)
       .replace(/~~(.*?)~~/g, "$1") // Strikethrough
       .replace(/`(.*?)`/g, "$1") // Inline code
       .replace(/^#{1,6}\s+(.*)/gm, "$1") // Headers
@@ -93,15 +103,54 @@ function AnswerDisplay({
       .replace(/^---+$/gm, "") // Horizontal rules (remove)
       .replace(/\n{3,}/g, "\n\n") // Multiple line breaks to double
       .trim();
+
+    // Only use lookbehind for italic if supported
+    if (supportsLookbehind) {
+      result = result.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "$1"); // Italic
+    } else {
+      // Fallback: simple italic removal (may have false matches but works)
+      result = result.replace(/\b\*([^*]+?)\*\b/g, "$1"); // Italic
+    }
+
+    return result;
   };
 
   const handleCopyResult = async () => {
     try {
       // Remove markdown from the answer before copying
       const plainText = removeMarkdown(answer);
-      await navigator.clipboard.writeText(plainText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+
+      // Check if Clipboard API is available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        // Modern clipboard API
+        await navigator.clipboard.writeText(plainText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        // Fallback for older browsers (including old Safari)
+        const textArea = document.createElement("textarea");
+        textArea.value = plainText;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          const successful = document.execCommand("copy");
+          if (successful) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } else {
+            console.error("Failed to copy using execCommand");
+          }
+        } catch (err) {
+          console.error("Failed to copy text: ", err);
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
     } catch (err) {
       console.error("Failed to copy text: ", err);
     }
