@@ -458,6 +458,10 @@ function CardSelection({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3 }}
+            style={{
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
           >
             <h3>🎯 {t("quickSelectPlaceholder")}</h3>
             <p>
@@ -565,6 +569,9 @@ function CardSelection({
                       display: "flex",
                       flexDirection: "column",
                       gap: "0.5rem",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      paddingRight: "0.5rem",
                     }}
                   >
                     {selectedCards.map((card) => {
