@@ -140,10 +140,15 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
 
   useEffect(() => {
     loadReadings().catch((err) => {
-      if (err.message.includes("Sheet not found") && onSheetNotFound) {
+      if (
+        err.message &&
+        err.message.includes("Sheet not found") &&
+        onSheetNotFound
+      ) {
         onSheetNotFound();
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Helper function to remove Vietnamese diacritics for easier searching

@@ -858,6 +858,7 @@ function CardSelection({
                             position: "absolute",
                             width: "100%",
                             height: "100%",
+                            WebkitBackfaceVisibility: "hidden",
                             backfaceVisibility: "hidden",
                             display: "flex",
                             alignItems: "center",
@@ -879,7 +880,11 @@ function CardSelection({
                             position: "absolute",
                             width: "100%",
                             height: "100%",
+                            WebkitBackfaceVisibility: "hidden",
                             backfaceVisibility: "hidden",
+                            WebkitTransform: "rotateY(180deg)",
+                            MozTransform: "rotateY(180deg)",
+                            msTransform: "rotateY(180deg)",
                             transform: "rotateY(180deg)",
                             borderRadius: "12px",
                             background: "white",
@@ -894,6 +899,7 @@ function CardSelection({
                           <img
                             src={card.image}
                             alt={card.name}
+                            crossOrigin="anonymous"
                             style={{
                               width: "100%",
                               height: "72%",
@@ -903,7 +909,13 @@ function CardSelection({
                             }}
                             onError={(e) => {
                               e.target.style.display = "none";
-                              e.target.nextSibling.style.display = "block";
+                              if (e.target.nextSibling) {
+                                e.target.nextSibling.style.display = "block";
+                              }
+                            }}
+                            onLoad={(e) => {
+                              // Ensure image is visible when loaded
+                              e.target.style.display = "block";
                             }}
                           />
                           <div
