@@ -48,7 +48,7 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.25 }}
       >
-        🔒 {t("privacyNotice")}
+        🔒 {t("privacyNoticeDetail")}
       </motion.p>
 
       <form onSubmit={handleSubmit}>

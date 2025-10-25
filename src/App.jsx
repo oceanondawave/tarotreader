@@ -8,8 +8,12 @@ import LanguageSwitcher from "./components/LanguageSwitcher";
 import StepNavigation from "./components/StepNavigation";
 import ConfirmationModal from "./components/ConfirmationModal";
 import CardVerification from "./components/CardVerification";
+import GoogleSignIn from "./components/GoogleSignIn";
+import UserInfoDialog from "./components/UserInfoDialog";
+import SavedReadingsPage from "./components/SavedReadingsPage";
 import { useLanguage } from "./contexts/LanguageContext";
 import { getTarotReading } from "./services/chutesService";
+import googleDriveService from "./services/googleDriveService";
 import "./styles/App.css";
 
 const springTransition = {
@@ -28,6 +32,10 @@ const pageTransition = {
 function App() {
   const { t, language } = useLanguage();
   const [showVerification, setShowVerification] = useState(false);
+
+  // Google Drive Integration
+  const [isGoogleSignedIn, setIsGoogleSignedIn] = useState(false);
+  const [googleUserInfo, setGoogleUserInfo] = useState(null);
   const [step, setStep] = useState(1); // 1: question, 2: cards, 3: thinking, 4: answer
   const [question, setQuestion] = useState("");
   const [selectedCards, setSelectedCards] = useState([]);
@@ -35,6 +43,39 @@ function App() {
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [currentPage, setCurrentPage] = useState("main"); // "main" or "saved-readings"
+  const [isLoadedReading, setIsLoadedReading] = useState(false); // Track if current reading was loaded from saved readings
+  const [showUserInfoDialog, setShowUserInfoDialog] = useState(false); // Show user info dialog for signed-in users
+  const [isCreatingDriveFiles, setIsCreatingDriveFiles] = useState(false); // Track if Drive files are being created
+  const [savedReadingDate, setSavedReadingDate] = useState(""); // Date of saved reading
+  const [savedReadingTime, setSavedReadingTime] = useState(""); // Time of saved reading
+
+  // Restore sign-in state from localStorage on mount
+  useEffect(() => {
+    const restoreSignInState = async () => {
+      try {
+        // Check if googleDriveService has saved state
+        if (googleDriveService.isAuthenticated && googleDriveService.userInfo) {
+          // Verify the token is still valid
+          try {
+            await googleDriveService.refreshTokenIfNeeded();
+            // Token is valid, restore sign-in state
+            setIsGoogleSignedIn(true);
+            setGoogleUserInfo(googleDriveService.userInfo);
+          } catch (error) {
+            // Token is expired, clear the state
+            googleDriveService.signOut();
+            setIsGoogleSignedIn(false);
+            setGoogleUserInfo(null);
+          }
+        }
+      } catch (error) {
+        // Silent error handling
+      }
+    };
+
+    restoreSignInState();
+  }, []); // Run only once on mount
 
   // Check for #verify in URL
   useEffect(() => {
@@ -46,6 +87,110 @@ function App() {
     window.addEventListener("hashchange", checkHash);
 
     return () => window.removeEventListener("hashchange", checkHash);
+  }, []);
+
+  // Monitor Drive file creation status
+  useEffect(() => {
+    if (isGoogleSignedIn) {
+      const checkDriveCreation = () => {
+        setIsCreatingDriveFiles(
+          googleDriveService.creatingFolder ||
+            googleDriveService.creatingSpreadsheet ||
+            googleDriveService.savingReading
+        );
+      };
+
+      // Check immediately
+      checkDriveCreation();
+
+      // Check periodically while signed in
+      const interval = setInterval(checkDriveCreation, 100);
+      return () => clearInterval(interval);
+    }
+  }, [isGoogleSignedIn]);
+
+  // Check auth status periodically and on actions
+  useEffect(() => {
+    if (isGoogleSignedIn) {
+      const checkAuth = async () => {
+        try {
+          // Only check if service is authenticated
+          if (!googleDriveService.isAuthenticated) {
+            handleGoogleSignOut();
+            return;
+          }
+
+          const authStatus = await googleDriveService.checkAuthStatus();
+          if (!authStatus.isValid) {
+            handleGoogleSignOut();
+          }
+        } catch (error) {
+          // Only sign out if it's a token expiration error
+          if (error.message.includes("Token expired")) {
+            handleGoogleSignOut();
+          }
+        }
+      };
+
+      // Check auth status on component mount
+      checkAuth();
+
+      // Set up periodic checking (every 10 minutes instead of 5)
+      const interval = setInterval(checkAuth, 10 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isGoogleSignedIn]);
+
+  // Check auth when navigating to saved readings page
+  useEffect(() => {
+    if (currentPage === "saved-readings" && isGoogleSignedIn) {
+      const checkAuthOnPage = async () => {
+        try {
+          if (googleDriveService.isAuthenticated) {
+            await googleDriveService.refreshTokenIfNeeded();
+          }
+
+          if (!googleDriveService.isAuthenticated) {
+            handleGoogleSignOut();
+            setCurrentPage("main");
+            setStep(1);
+          }
+        } catch (error) {
+          handleGoogleSignOut();
+          setCurrentPage("main");
+          setStep(1);
+        }
+      };
+
+      checkAuthOnPage();
+    }
+  }, [currentPage, isGoogleSignedIn]);
+
+  // Handle saved reading URLs
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#result?")) {
+        const params = new URLSearchParams(hash.substring(8));
+        const readingId = params.get("readingId");
+        const question = params.get("question");
+        const cards = JSON.parse(params.get("cards") || "[]");
+        const answer = params.get("answer");
+        const language = params.get("language");
+
+        if (readingId && question && cards && answer) {
+          setQuestion(question);
+          setSelectedCards(cards);
+          setAnswer(answer);
+          setStep(4); // Go directly to result page
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
   // Scroll to top on page refresh/load
@@ -126,9 +271,110 @@ function App() {
     });
   };
 
+  // Google Drive Integration Handlers
+  const handleGoogleSignIn = async (userInfo) => {
+    if (userInfo) {
+      // Called from GoogleSignIn component
+      setIsGoogleSignedIn(true);
+      setGoogleUserInfo(userInfo);
+    } else {
+      // Called from main page sign-in button - need to call service
+      try {
+        const result = await googleDriveService.signIn();
+        setIsGoogleSignedIn(true);
+        setGoogleUserInfo(result);
+      } catch (error) {
+        // Silent error handling
+      }
+    }
+  };
+
+  const handleGoogleSignOut = () => {
+    googleDriveService.signOut();
+    setIsGoogleSignedIn(false);
+    setGoogleUserInfo(null);
+  };
+
+  const handleSheetNotFound = () => {
+    handleGoogleSignOut();
+    setCurrentPage("main"); // Return to main page
+    setStep(1); // Reset to step 1
+    alert("Spreadsheet was deleted. You have been signed out.");
+  };
+
+  const handleReadingSaved = () => {
+    // This will be called when a reading is saved to update the hasReadings state
+    if (window.updateHasReadings) {
+      window.updateHasReadings();
+    }
+  };
+
   const handleCancelReset = () => {
     setShowConfirmModal(false);
     setPendingNavigation(null);
+  };
+
+  // Navigation handlers
+  const handleViewSavedReadings = async () => {
+    try {
+      // Check if user is still authenticated before navigating
+      if (googleDriveService.isAuthenticated) {
+        await googleDriveService.refreshTokenIfNeeded();
+      }
+
+      // If still authenticated after refresh, navigate
+      if (googleDriveService.isAuthenticated) {
+        setCurrentPage("saved-readings");
+        setShowUserInfoDialog(false); // Close the dialog when navigating
+      } else {
+        // Token expired, sign out
+        handleGoogleSignOut();
+      }
+    } catch (error) {
+      // If error during check, sign out and stay on main page
+      handleGoogleSignOut();
+    }
+  };
+
+  const handleBackToMain = () => {
+    setCurrentPage("main");
+    setStep(1); // Reset to step 1 to show the main screen
+    setIsLoadedReading(false); // Clear loaded reading flag
+    setSavedReadingDate(""); // Clear saved date
+    setSavedReadingTime(""); // Clear saved time
+    // Clear the question, cards, and answer from the saved reading
+    setQuestion("");
+    setSelectedCards([]);
+    setAnswer("");
+  };
+
+  const handleViewReading = (reading) => {
+    setQuestion(reading.question);
+    setSelectedCards(reading.cards);
+    setAnswer(reading.answer);
+    setIsLoadedReading(true); // Mark as loaded reading to prevent auto-save
+    setSavedReadingDate(reading.date || ""); // Save the date
+    setSavedReadingTime(reading.time || ""); // Save the time
+    setStep(4); // Go directly to result page
+    setCurrentPage("main");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleBackToSavedReadings = () => {
+    setCurrentPage("saved-readings");
+    setSavedReadingDate("");
+    setSavedReadingTime("");
+    setIsLoadedReading(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // User info dialog handlers
+  const handleShowUserInfo = () => {
+    setShowUserInfoDialog(true);
+  };
+
+  const handleCloseUserInfo = () => {
+    setShowUserInfoDialog(false);
   };
 
   const handleSubmitReading = () => {
@@ -154,8 +400,9 @@ function App() {
         }, 2000);
       })
       .catch((err) => {
-        console.error("Error:", err);
         setError(err.message || t("errorReading"));
+        // Clear selected cards and flip state by resetting selection
+        setSelectedCards([]);
         setStep(2);
       });
   };
@@ -165,6 +412,9 @@ function App() {
     setSelectedCards([]);
     setAnswer("");
     setError("");
+    setIsLoadedReading(false); // Reset loaded reading flag
+    setSavedReadingDate(""); // Clear saved date
+    setSavedReadingTime(""); // Clear saved time
     setStep(1);
 
     // Scroll to top smoothly
@@ -176,26 +426,72 @@ function App() {
 
   // Show verification page if #verify in URL
   if (showVerification) {
-    return <CardVerification />;
+    return (
+      <>
+        {/* User Info Dialog for signed-in users */}
+        <UserInfoDialog
+          isOpen={showUserInfoDialog}
+          onClose={handleCloseUserInfo}
+          onViewSavedReadings={handleViewSavedReadings}
+          onSignOut={handleGoogleSignOut}
+          userInfo={googleUserInfo}
+        />
+        <CardVerification />
+      </>
+    );
+  }
+
+  // Show saved readings page
+  if (currentPage === "saved-readings") {
+    return (
+      <>
+        {/* User Info Dialog for signed-in users */}
+        <UserInfoDialog
+          isOpen={showUserInfoDialog}
+          onClose={handleCloseUserInfo}
+          onViewSavedReadings={handleViewSavedReadings}
+          onSignOut={handleGoogleSignOut}
+          userInfo={googleUserInfo}
+        />
+        <SavedReadingsPage
+          onBack={handleBackToMain}
+          onViewReading={handleViewReading}
+          onSheetNotFound={handleSheetNotFound}
+        />
+      </>
+    );
   }
 
   return (
     <>
-      {/* Bottom Action Buttons */}
-      <div className="bottom-actions">
-        <LanguageSwitcher />
+      {/* User Info Dialog for signed-in users */}
+      <UserInfoDialog
+        isOpen={showUserInfoDialog}
+        onClose={handleCloseUserInfo}
+        onViewSavedReadings={handleViewSavedReadings}
+        onSignOut={handleGoogleSignOut}
+        userInfo={googleUserInfo}
+      />
 
-        <div className="view-all-cards-button-container">
-          <motion.a
-            href="#verify"
-            className="view-all-cards-button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            🃏 {t("viewAllCards")}
-          </motion.a>
+      {/* Bottom Action Buttons - Only show on step 1 (main screen) */}
+      {step === 1 && (
+        <div className="bottom-actions">
+          <div className="bottom-actions-stack">
+            <LanguageSwitcher />
+
+            <div className="view-all-cards-button-container">
+              <motion.a
+                href="#verify"
+                className="view-all-cards-button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🃏 {t("viewAllCards")}
+              </motion.a>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Confirmation Modal */}
       <ConfirmationModal
@@ -300,11 +596,59 @@ function App() {
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div key="question" {...pageTransition}>
+                {/* Google Drive Integration - At the top */}
+                {isGoogleSignedIn ? (
+                  <GoogleSignIn
+                    onSignIn={handleGoogleSignIn}
+                    onSignOut={handleGoogleSignOut}
+                    isSignedIn={isGoogleSignedIn}
+                    userInfo={googleUserInfo}
+                    onReadingSaved={handleReadingSaved}
+                    onViewSavedReadings={handleViewSavedReadings}
+                    onShowUserInfo={handleShowUserInfo}
+                    isCreatingDriveFiles={isCreatingDriveFiles}
+                  />
+                ) : (
+                  <div className="sign-in-prompt">
+                    <div className="sign-in-content">
+                      <h3>💾 {t("saveToDrive")}</h3>
+                      <p>{t("signInPrompt")}</p>
+                      <p className="sign-in-privacy">🔒 {t("privacyInfo")}</p>
+                      <button
+                        className="sign-in-prompt-button"
+                        onClick={() => handleGoogleSignIn()}
+                        aria-label={t("signInWithGoogle")}
+                      >
+                        <span className="google-icon">🔐</span>
+                        {t("signInWithGoogle")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <QuestionStep
                   question={question}
                   onQuestionChange={setQuestion}
                   onContinue={handleContinueToCards}
                 />
+
+                {/* Service Caution */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  style={{
+                    textAlign: "center",
+                    fontSize: "0.85rem",
+                    color: "var(--text-secondary)",
+                    fontStyle: "italic",
+                    marginTop: "2rem",
+                    lineHeight: "1.5",
+                    padding: "0 1rem",
+                  }}
+                >
+                  {t("serviceCaution")}
+                </motion.p>
               </motion.div>
             )}
 
@@ -333,6 +677,12 @@ function App() {
                   answer={answer}
                   question={question}
                   onNewReading={handleNewReading}
+                  isGoogleSignedIn={isGoogleSignedIn}
+                  onReadingSaved={handleReadingSaved}
+                  isLoadedReading={isLoadedReading}
+                  savedReadingDate={savedReadingDate}
+                  savedReadingTime={savedReadingTime}
+                  onBackToSavedReadings={handleBackToSavedReadings}
                 />
               </motion.div>
             )}

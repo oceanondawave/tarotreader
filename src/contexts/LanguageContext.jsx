@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const translations = {
   vi: {
@@ -21,7 +21,7 @@ const translations = {
     shuffling: "Đang Xáo Bài...",
     quickSelectPlaceholder: "Chọn nhanh theo số",
     quickSelectInstructions:
-      "Hướng dẫn: Nhập số để chọn lá bài. Sau khi chọn đủ 3 lá, nhấn Hoàn thành để xem kết quả. Nếu muốn bỏ chọn lá nào, sử dụng menu thả xuống bên dưới.",
+      "Hướng dẫn: Nhập số để chọn lá bài. Sau khi chọn đủ 3 lá, nhấn Hoàn thành để quay lại menu và xem kết quả. Nếu muốn bỏ chọn lá nào, sử dụng menu thả xuống bên dưới.",
     quickSelectDescription: "Nhập vị trí từ 1 đến {count} để chọn lá bài",
     removeCardLabel: "Bỏ chọn lá bài:",
     selectCardToRemove: "Chọn lá bài để bỏ chọn...",
@@ -30,6 +30,11 @@ const translations = {
     inputPlaceholder: "Nhập vị trí...",
     selectButton: "Chọn",
     doneButton: "Hoàn thành",
+    manualSelection: "Chọn thủ công",
+    quickSelection: "Chọn nhanh theo số",
+    manualSelectionDescription: "Chọn {count} lá bài bằng cách bấm vào chúng",
+    manualSelectionInstructions:
+      "Hướng dẫn: Bấm vào các lá bài để lật và chọn. Sau khi chọn đủ 3 lá, nhấn Hoàn thành để quay lại menu và xem kết quả. Nếu muốn bỏ chọn lá nào, bấm lại vào lá bài đó.",
     copyResult: "Sao chép kết quả",
     copied: "Đã sao chép!",
     buyCoffee: "Tặng tác giả cà phê muối",
@@ -45,9 +50,66 @@ const translations = {
     completed: "đã hoàn thành",
     notCompleted: "chưa hoàn thành",
     privacyNotice: "Không thu thập dữ liệu nào từ câu hỏi của bạn",
+    privacyNoticeDetail:
+      "Không thu thập dữ liệu nào từ câu hỏi của bạn. Chỉ bạn mới có thể xem các bài đọc đã lưu của mình, không ai khác có thể.",
     revealReading: "Xem Kết Quả",
 
-    // Modal
+    // Google Drive Integration
+    saveToDrive: "Lưu vào Google Drive",
+    saveToDriveDescription: "Đăng nhập để tự động lưu kết quả vào Google Drive",
+    signInWithGoogle: "Đăng nhập Google",
+    signOut: "Đăng xuất",
+    driveConnected: "Đã kết nối Google Drive",
+    autoCreateFolder: "Tự động tạo thư mục",
+    excelFormat: "Định dạng Excel",
+    searchableHistory: "Lịch sử có thể tìm kiếm",
+    cloudBackup: "Sao lưu đám mây",
+    signInFailed: "Đăng nhập thất bại",
+    signOutFailed: "Đăng xuất thất bại",
+    permissionRequestFailed: "Không thể cấp quyền truy cập",
+    autoSaveEnabled: "Tự động lưu đã bật",
+    autoSaveDisabled: "Tự động lưu đã tắt",
+    readingSaved: "Đã lưu bài đọc",
+    saveFailed: "Lưu thất bại",
+    popupClosed: "Cửa sổ đăng nhập đã bị đóng",
+    accessDenied: "Quyền truy cập bị từ chối",
+    insufficientAuth: "Xác thực không đủ",
+    folderCreated: "Thư mục đã tạo",
+    spreadsheetCreated: "Bảng tính đã tạo",
+    savedReadings: "Bài đọc đã lưu",
+    savedOn: "Đã lưu vào",
+    backToSavedReadings: "Quay lại danh sách bài đọc đã lưu",
+    searchPlaceholder: "Tìm kiếm theo câu hỏi, ngày, hoặc tên lá bài...",
+    search: "Tìm kiếm",
+    clear: "Xóa",
+    loading: "Đang tải...",
+    loadFailed: "Không thể tải dữ liệu",
+    searchFailed: "Tìm kiếm thất bại",
+    noSearchResults: "Không tìm thấy kết quả nào",
+    noReadings: "Chưa có bài đọc nào được lưu",
+    viewSavedReadings: "Xem bài đọc đã lưu",
+    deleteReading: "Xóa bài đọc",
+    viewReading: "Xem",
+    confirmDelete: "Bạn có chắc chắn muốn xóa bài đọc này?",
+    deleteFailed: "Không thể xóa bài đọc",
+    cleanupButton: "Dọn dẹp",
+    cleanupTitle: "Dọn dẹp dữ liệu",
+    cleanupDescription:
+      "Loại bỏ các dòng dữ liệu không hợp lệ hoặc trống trong bảng tính",
+    cleanupConfirm:
+      "Bạn có chắc chắn muốn dọn dẹp dữ liệu? Hành động này sẽ xóa các dòng không hợp lệ.",
+    cleanupCompleted: "Đã hoàn thành! Đã xóa {count} dòng không hợp lệ.",
+    cleanupFailed: "Không thể dọn dẹp dữ liệu",
+    signInDialogSubtitle: "Đăng nhập để tự động lưu kết quả vào Google Sheets",
+    privateAndSecure: "Riêng tư và bảo mật",
+    skipForNow: "Bỏ qua",
+    userInfo: "Thông tin người dùng",
+    yourDriveFiles: "Tệp Google Drive của bạn",
+    close: "Đóng",
+    signInPrompt: "Đăng nhập để tự động lưu kết quả vào Google Drive",
+    privacyInfo: "Chỉ lưu vào Google Sheets của bạn, hoàn toàn riêng tư",
+    driveCaution:
+      "⚠️ Cảnh báo: Xóa hoặc chỉnh sửa sheet có thể gây hỏng dữ liệu. Vui lòng không thực hiện.",
     modalTitle: "Lượt Bói Của Bạn",
     modalSubtitle: "Bạn đã chọn xong lá bài. Hãy đặt câu hỏi của bạn.",
     selectedCardsTitle: "Các Lá Bài Đã Chọn",
@@ -65,6 +127,13 @@ const translations = {
     // Thinking
     thinkingTitle: "Đang Tham Khảo Lá Bài",
     thinkingSubtext: "Các linh hồn đang thì thầm...",
+    factContainer: "Thông tin về bài Tarot",
+    playFacts: "Phát thông tin",
+    pauseFacts: "Tạm dừng thông tin",
+    aiCaution:
+      "⚠️ Lưu ý: Kết quả được tạo bởi AI, có thể không chính xác, xin hãy tham khảo",
+    serviceCaution:
+      "⚠️ Tác giả sử dụng dịch vụ miễn phí, có thể gián đoạn nếu lượt sử dụng cao, mong mọi người thông cảm",
 
     // Answer
     answerTitle: "Kết Quả Bói Của Bạn",
@@ -111,7 +180,7 @@ const translations = {
     shuffling: "Shuffling...",
     quickSelectPlaceholder: "Quick select by number",
     quickSelectInstructions:
-      "Instructions: Enter numbers to select cards. After selecting 3 cards, click Done to view results. If you want to remove any card, use the dropdown menu below.",
+      "Instructions: Enter numbers to select cards. After selecting 3 cards, click Done to return to menu and view results. If you want to remove any card, use the dropdown menu below.",
     quickSelectDescription: "Enter position from 1 to {count} to select card",
     removeCardLabel: "Remove card:",
     selectCardToRemove: "Select card to remove...",
@@ -120,6 +189,11 @@ const translations = {
     inputPlaceholder: "Enter position...",
     selectButton: "Select",
     doneButton: "Done",
+    manualSelection: "Manual Selection",
+    quickSelection: "Quick Select by Number",
+    manualSelectionDescription: "Select {count} cards by clicking on them",
+    manualSelectionInstructions:
+      "Instructions: Click on cards to flip and select them. After selecting 3 cards, click Done to return to menu and view results. To unselect a card, click on it again.",
     copyResult: "Copy Result",
     copied: "Copied!",
     buyCoffee: "Buy author a coffee",
@@ -135,7 +209,67 @@ const translations = {
     completed: "completed",
     notCompleted: "not completed",
     privacyNotice: "No data is collected from your question",
+    privacyNoticeDetail:
+      "No data is collected from your question. Only you can view your own saved readings, no one else can.",
     revealReading: "Reveal Reading",
+
+    // Google Drive Integration
+    saveToDrive: "Save to Google Drive",
+    saveToDriveDescription:
+      "Sign in to automatically save results to Google Drive",
+    signInWithGoogle: "Sign in with Google",
+    signOut: "Sign Out",
+    driveConnected: "Google Drive Connected",
+    autoCreateFolder: "Auto-create folder",
+    excelFormat: "Excel format",
+    searchableHistory: "Searchable history",
+    cloudBackup: "Cloud backup",
+    signInFailed: "Sign in failed",
+    signOutFailed: "Sign out failed",
+    permissionRequestFailed: "Could not grant access permissions",
+    autoSaveEnabled: "Auto-save enabled",
+    autoSaveDisabled: "Auto-save disabled",
+    readingSaved: "Reading saved",
+    saveFailed: "Save failed",
+    popupClosed: "Login popup was closed",
+    accessDenied: "Access denied",
+    insufficientAuth: "Insufficient authentication",
+    folderCreated: "Folder created",
+    spreadsheetCreated: "Spreadsheet created",
+    savedReadings: "Saved Readings",
+    driveCaution:
+      "⚠️ Caution: Removing or editing the sheet would cause data corruption. Do not do it.",
+    searchPlaceholder: "Search by question, date, or card name...",
+    search: "Search",
+    clear: "Clear",
+    loading: "Loading...",
+    loadFailed: "Failed to load data",
+    searchFailed: "Search failed",
+    noSearchResults: "No results found",
+    noReadings: "No readings saved yet",
+    viewSavedReadings: "View Saved Readings",
+    savedOn: "Saved on",
+    backToSavedReadings: "Back to Saved Readings",
+    deleteReading: "Delete Reading",
+    viewReading: "View",
+    confirmDelete: "Are you sure you want to delete this reading?",
+    deleteFailed: "Failed to delete reading",
+    cleanupButton: "Cleanup",
+    cleanupTitle: "Cleanup Data",
+    cleanupDescription: "Remove invalid or empty rows from the spreadsheet",
+    cleanupConfirm:
+      "Are you sure you want to cleanup the data? This will remove invalid rows.",
+    cleanupCompleted: "Cleanup completed! Removed {count} invalid rows.",
+    cleanupFailed: "Failed to cleanup data",
+    signInDialogSubtitle:
+      "Sign in to automatically save your results to Google Sheets",
+    privateAndSecure: "Private and secure",
+    skipForNow: "Skip for now",
+    userInfo: "User Information",
+    yourDriveFiles: "Your Google Drive Files",
+    close: "Close",
+    signInPrompt: "Sign in to automatically save your results to Google Drive",
+    privacyInfo: "Save only to your Google Sheets, completely private",
 
     // Modal
     modalTitle: "Your Reading",
@@ -155,6 +289,13 @@ const translations = {
     // Thinking
     thinkingTitle: "Consulting the Cards",
     thinkingSubtext: "The spirits are speaking...",
+    factContainer: "Tarot Information",
+    playFacts: "Play Facts",
+    pauseFacts: "Pause Facts",
+    aiCaution:
+      "⚠️ Caution: Results are generated by AI, may not be accurate, please take as reference",
+    serviceCaution:
+      "⚠️ Author uses free service, could be down if usage is high, please understand",
 
     // Answer
     answerTitle: "Your Reading",
@@ -187,7 +328,25 @@ const translations = {
 const LanguageContext = createContext();
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState("vi"); // Default to Vietnamese
+  // Initialize language from localStorage or default to "vi"
+  const [language, setLanguageState] = useState(() => {
+    try {
+      const savedLanguage = localStorage.getItem("tarotLanguage");
+      return savedLanguage || "vi";
+    } catch (error) {
+      console.error("Failed to load language from localStorage:", error);
+      return "vi";
+    }
+  });
+
+  // Save language to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem("tarotLanguage", language);
+    } catch (error) {
+      console.error("Failed to save language to localStorage:", error);
+    }
+  }, [language]);
 
   const t = (key, replacements = {}) => {
     let text = translations[language][key] || key;
@@ -201,7 +360,7 @@ export function LanguageProvider({ children }) {
   };
 
   const toggleLanguage = () => {
-    setLanguage((prev) => (prev === "vi" ? "en" : "vi"));
+    setLanguageState((prev) => (prev === "vi" ? "en" : "vi"));
   };
 
   return (

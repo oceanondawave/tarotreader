@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import html2canvas from "html2canvas";
+import googleDriveService from "../services/googleDriveService";
 
 const springTransition = {
   type: "spring",
@@ -9,11 +10,71 @@ const springTransition = {
   damping: 25,
 };
 
-function AnswerDisplay({ cards, answer, question, onNewReading }) {
-  const { t } = useLanguage();
+function AnswerDisplay({
+  cards,
+  answer,
+  question,
+  onNewReading,
+  isGoogleSignedIn,
+  onReadingSaved,
+  isLoadedReading = false, // New prop to prevent auto-save for loaded readings
+  savedReadingDate = "",
+  savedReadingTime = "",
+  onBackToSavedReadings,
+}) {
+  const { t, language } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [autoSaved, setAutoSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const answerSectionRef = useRef(null);
+  const hasAutoSaved = useRef(false);
+
+  // Auto-save to Google Drive when component mounts and user is signed in
+  // Skip auto-save if this is a loaded reading to prevent duplicates
+  useEffect(() => {
+    if (
+      isGoogleSignedIn &&
+      answer &&
+      cards.length > 0 &&
+      !hasAutoSaved.current &&
+      !isLoadedReading // Don't auto-save loaded readings
+    ) {
+      handleAutoSave();
+      hasAutoSaved.current = true;
+    }
+  }, [isGoogleSignedIn, answer, cards.length, isLoadedReading]);
+
+  // Reset auto-save flag when component unmounts or when starting a new reading
+  useEffect(() => {
+    return () => {
+      hasAutoSaved.current = false;
+    };
+  }, []);
+
+  const handleAutoSave = async () => {
+    try {
+      setSaveError(null);
+      const readingData = {
+        question: question || "",
+        cards: cards,
+        answer: answer,
+        language: language,
+      };
+
+      await googleDriveService.saveReading(readingData);
+      setAutoSaved(true);
+      setTimeout(() => setAutoSaved(false), 3000);
+
+      // Notify parent that a reading was saved
+      if (onReadingSaved) {
+        onReadingSaved();
+      }
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+      setSaveError(error.message || t("saveFailed"));
+    }
+  };
 
   const handleCopyResult = async () => {
     try {
@@ -157,6 +218,18 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
         {t("answerTitle")}
       </motion.h2>
 
+      {/* Display saved reading timestamp if this is a loaded reading */}
+      {isLoadedReading && (savedReadingDate || savedReadingTime) && (
+        <motion.div
+          className="saved-reading-info"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springTransition, delay: 0.25 }}
+        >
+          📅 {t("savedOn")} {savedReadingDate} {savedReadingTime}
+        </motion.div>
+      )}
+
       {/* Display the question */}
       <motion.div
         className="result-question"
@@ -223,8 +296,51 @@ function AnswerDisplay({ cards, answer, question, onNewReading }) {
           ))}
         </div>
 
+        {/* Auto-save Status */}
+        {isGoogleSignedIn && (
+          <motion.div
+            className="auto-save-status"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, ...springTransition }}
+          >
+            {autoSaved ? (
+              <div className="save-success">
+                <span className="status-icon">✓</span>
+                <span>{t("readingSaved")}</span>
+              </div>
+            ) : saveError ? (
+              <div className="save-error">
+                <span className="status-icon">⚠</span>
+                <span>{saveError}</span>
+              </div>
+            ) : (
+              <div className="save-info">
+                <span className="status-icon">☁️</span>
+                <span>{t("autoSaveEnabled")}</span>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Action Buttons */}
         <div className="action-buttons">
+          {/* Back to Saved Readings button - only show if this is a loaded reading */}
+          {isLoadedReading && onBackToSavedReadings && (
+            <motion.button
+              className="back-to-saved-button"
+              onClick={onBackToSavedReadings}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1, ...springTransition }}
+              aria-label={t("backToSavedReadings")}
+            >
+              ← {t("backToSavedReadings")}
+            </motion.button>
+          )}
+
           <motion.button
             className="donation-button"
             onClick={() => {
