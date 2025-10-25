@@ -108,6 +108,13 @@ function CardSelection({
       // Only handle if a modal is open
       if (!showQuickSelectModal && !showManualSelectModal) return;
 
+      // Don't interfere with native select element keyboard interactions
+      if (document.activeElement.tagName === "SELECT") {
+        // Always allow select element to handle its own keyboard events
+        // Don't intercept Space, Enter, or any other keys
+        return;
+      }
+
       // Get all focusable elements in the modal
       const modalElement = modalRef.current;
       if (!modalElement) return;
@@ -123,12 +130,15 @@ function CardSelection({
 
       const currentIndex = focusableArray.indexOf(document.activeElement);
 
+      // Only handle arrow keys, nothing else
       if (e.key === "ArrowDown" || e.key === "ArrowRight") {
         e.preventDefault();
+        e.stopPropagation();
         const nextIndex = (currentIndex + 1) % focusableArray.length;
         focusableArray[nextIndex].focus();
       } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
         e.preventDefault();
+        e.stopPropagation();
         const nextIndex =
           currentIndex - 1 < 0 ? focusableArray.length - 1 : currentIndex - 1;
         focusableArray[nextIndex].focus();
@@ -136,8 +146,8 @@ function CardSelection({
     };
 
     if (showQuickSelectModal || showManualSelectModal) {
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown, true); // Use capture phase
+      return () => document.removeEventListener("keydown", handleKeyDown, true);
     }
   }, [showQuickSelectModal, showManualSelectModal]);
 
@@ -152,6 +162,11 @@ function CardSelection({
       const lastElement = focusableElements[focusableElements.length - 1];
 
       const handleKeyDown = (e) => {
+        // Don't interfere with native select element keyboard interactions
+        if (document.activeElement.tagName === "SELECT") {
+          return;
+        }
+
         if (e.key === "Tab") {
           if (e.shiftKey) {
             if (document.activeElement === firstElement) {
