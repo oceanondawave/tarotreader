@@ -152,42 +152,52 @@ const GoogleSignIn = ({
   }
 
   return (
-    <motion.div
-      className="google-signin-compact"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="google-signin-compact-content">
-        <button
-          className="user-avatar-compact"
-          onClick={onShowUserInfo}
-          disabled={isLoading || isCreatingDriveFiles}
-          aria-label={`${t("userInfo")} - ${userInfo?.name}`}
-          title={`${t("userInfo")} - ${userInfo?.name}`}
-        >
-          {userInfo?.picture ? (
-            <img src={userInfo.picture} alt={userInfo.name} />
-          ) : (
-            <span className="avatar-placeholder">
-              {userInfo?.name?.charAt(0) || "U"}
+    <>
+      <motion.div
+        className="google-signin-compact"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="google-signin-compact-content">
+          <button
+            className="user-avatar-compact"
+            onClick={onShowUserInfo}
+            disabled={isLoading || isCreatingDriveFiles}
+            aria-label={`${t("userInfo")} - ${userInfo?.name}`}
+            title={`${t("userInfo")} - ${userInfo?.name}`}
+          >
+            {userInfo?.picture ? (
+              <img src={userInfo.picture} alt={userInfo.name} />
+            ) : (
+              <span className="avatar-placeholder">
+                {userInfo?.name?.charAt(0) || "U"}
+              </span>
+            )}
+            <span className="user-name-compact">
+              {userInfo?.name || "User"}
             </span>
-          )}
-          <span className="user-name-compact">{userInfo?.name || "User"}</span>
-          <span className="status-indicator">✅</span>
-        </button>
+            <span className="status-indicator">✅</span>
+          </button>
 
-        <button
-          className="sign-out-compact-button"
-          onClick={handleSignOut}
-          disabled={isLoading || isCreatingDriveFiles}
-          aria-label={t("signOut")}
-        >
-          <span className="google-icon">🚪</span>
-          {t("signOut")}
-        </button>
-      </div>
-    </motion.div>
+          <button
+            className="sign-out-compact-button"
+            onClick={handleSignOut}
+            disabled={isLoading || isCreatingDriveFiles}
+            aria-label={t("signOut")}
+          >
+            <span className="google-icon">🚪</span>
+            {t("signOut")}
+          </button>
+        </div>
+      </motion.div>
+
+      {isSignedIn && (
+        <div className="troubleshoot-tip">
+          <p>{t("dataLoadTroubleshoot")}</p>
+        </div>
+      )}
+    </>
   );
 };
 

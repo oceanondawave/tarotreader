@@ -149,7 +149,6 @@ function UserInfoDialog({
                   <button
                     className="view-readings-button"
                     onClick={handleViewSavedReadings}
-                    disabled={isLoading}
                   >
                     <span className="google-icon">📚</span>
                     {t("viewSavedReadings")}

@@ -17,38 +17,36 @@ export async function getTarotReading(cards, question, language = "vi") {
 
   const promptInstructions =
     language === "vi"
-      ? `Bạn là một nhà bói toán Tarot thông thái và huyền bí. Một người đã rút những lá bài sau và đặt câu hỏi. Hãy cung cấp một bài đọc sâu sắc, có suy nghĩ, kết nối các lá bài với câu hỏi của họ.
+      ? `Một người đã rút những lá bài sau và đặt câu hỏi. Hãy giải thích ý nghĩa các lá bài và đưa ra lời khuyên ngắn gọn.
 
-Các Lá Bài Đã Rút:
+Các Lá Bài:
 ${cardDescriptions}
 
 Câu Hỏi: ${question}
 
-Hãy cung cấp bài đọc với:
-1. Giải thích từng lá bài trong ngữ cảnh câu hỏi của họ
-2. Chỉ ra cách các lá bài liên quan với nhau
-3. Đưa ra lời khuyên và cái nhìn sâu sắc có ý nghĩa
-4. Được viết bằng giọng điệu huyền bí nhưng dễ hiểu
-5. Độ dài khoảng 2-3 đoạn văn ngắn gọn
-6. Sử dụng **in đậm** cho các tiêu đề và *in nghiêng* để nhấn mạnh các điểm quan trọng
+Yêu cầu:
+- Giải thích ngắn gọn từng lá bài trong ngữ cảnh câu hỏi
+- Chỉ ra mối liên hệ giữa các lá bài
+- Đưa ra lời khuyên thiết thực và thẳng thắn
+- Tối đa 200 từ, viết ngắn gọn, đi vào trọng tâm
+- Sử dụng **in đậm** cho tiêu đề và *in nghiêng* để nhấn mạnh
 
-QUAN TRỌNG: Trả lời HOÀN TOÀN bằng TIẾNG VIỆT. Không dùng tiếng Anh.`
-      : `You are a wise and mystical tarot reader. A person has drawn the following cards and asks a question. Provide a thoughtful, insightful reading that connects the cards to their question.
+QUAN TRỌNG: Trả lời HOÀN TOÀN bằng TIẾNG VIỆT. Không dùng tiếng Anh. Không dùng các cụm từ như "Tôi là...", "Tôi là một nhà bói toán...". Nói trực tiếp với người dùng.`
+      : `A person has drawn the following cards and asks a question. Interpret the cards and provide brief guidance.
 
-Cards Drawn:
+Cards:
 ${cardDescriptions}
 
 Question: ${question}
 
-Provide a reading that:
-1. Interprets each card in the context of their question
-2. Shows how the cards relate to each other
-3. Offers meaningful guidance and insight
-4. Is written in a mystical yet accessible tone
-5. Is about 2-3 short paragraphs
-6. Use **bold** for headings and *italics* to emphasize important points
+Requirements:
+- Briefly interpret each card in context of their question
+- Show how cards relate to each other
+- Provide direct, practical advice
+- Maximum 200 words, be concise and to the point
+- Use **bold** for headings and *italics* for emphasis
 
-Please respond ENTIRELY in ENGLISH.`;
+IMPORTANT: Respond ENTIRELY in ENGLISH. Do not use phrases like "I am...", "I am a tarot reader...". Speak directly to the user.`;
 
   const prompt = `${promptInstructions}
 

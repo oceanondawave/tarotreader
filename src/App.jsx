@@ -614,6 +614,9 @@ function App() {
                       <h3>💾 {t("saveToDrive")}</h3>
                       <p>{t("signInPrompt")}</p>
                       <p className="sign-in-privacy">🔒 {t("privacyInfo")}</p>
+                      <div className="google-warning">
+                        <p>{t("googleVerificationWarning")}</p>
+                      </div>
                       <button
                         className="sign-in-prompt-button"
                         onClick={() => handleGoogleSignIn()}

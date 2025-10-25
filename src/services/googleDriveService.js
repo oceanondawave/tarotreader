@@ -495,8 +495,18 @@ class GoogleDriveService {
       }
 
       const now = new Date();
-      const dateStr = now.toLocaleDateString();
-      const timeStr = now.toLocaleTimeString();
+
+      // Format date consistently (YYYY-MM-DD)
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+
+      // Format time consistently (HH:MM:SS in 24-hour format)
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+      const timeStr = `${hours}:${minutes}:${seconds}`;
 
       // Create a unique ID for this reading to prevent duplicates
       const readingId = `${dateStr}_${timeStr}_${Math.random()

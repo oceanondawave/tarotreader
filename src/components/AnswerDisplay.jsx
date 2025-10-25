@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import html2canvas from "html2canvas";
 import googleDriveService from "../services/googleDriveService";
 
 const springTransition = {
@@ -76,9 +75,31 @@ function AnswerDisplay({
     }
   };
 
+  // Helper function to remove markdown from text
+  const removeMarkdown = (text) => {
+    if (!text) return text;
+
+    return text
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Bold
+      .replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "$1") // Italic (not bold)
+      .replace(/~~(.*?)~~/g, "$1") // Strikethrough
+      .replace(/`(.*?)`/g, "$1") // Inline code
+      .replace(/^#{1,6}\s+(.*)/gm, "$1") // Headers
+      .replace(/^[-*]\s+/gm, "• ") // Bullet points to simple bullet
+      .replace(/^\d+\.\s+/gm, "") // Remove numbered list markers
+      .replace(/^>\s+(.*)$/gm, "$1") // Block quotes
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1") // Links (keep text only)
+      .replace(/!\[([^\]]*)\]\([^\)]+\)/g, "") // Images (remove entirely)
+      .replace(/^---+$/gm, "") // Horizontal rules (remove)
+      .replace(/\n{3,}/g, "\n\n") // Multiple line breaks to double
+      .trim();
+  };
+
   const handleCopyResult = async () => {
     try {
-      await navigator.clipboard.writeText(answer);
+      // Remove markdown from the answer before copying
+      const plainText = removeMarkdown(answer);
+      await navigator.clipboard.writeText(plainText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -86,120 +107,560 @@ function AnswerDisplay({
     }
   };
 
-  const handleSaveScreenshot = async () => {
+  const handleSaveScreenshot = () => {
     try {
       if (!answerSectionRef.current) return;
 
-      // Create a temporary container with only the content we want to capture
-      const tempContainer = document.createElement("div");
-      tempContainer.style.position = "absolute";
-      tempContainer.style.left = "-9999px";
-      tempContainer.style.top = "-9999px";
-      tempContainer.style.width = answerSectionRef.current.offsetWidth + "px";
-      tempContainer.style.backgroundColor = getComputedStyle(
-        document.body
+      // Create a new window for printing
+      const printWindow = window.open("", "_blank");
+
+      // Get the computed styles from the original element to preserve theme
+      const computedStyle = getComputedStyle(answerSectionRef.current);
+      const answerBgColor = computedStyle.backgroundColor;
+      const textColor = computedStyle.color;
+      const fontFamily = computedStyle.fontFamily;
+
+      // Try to get the actual page background (check html element or use answer-section background as fallback)
+      let pageBgColor = getComputedStyle(
+        document.documentElement
       ).backgroundColor;
-      tempContainer.style.padding = "2rem";
-      tempContainer.style.borderRadius = "12px";
+      // If html is also transparent/transparent, use the answer section background
+      if (
+        !pageBgColor ||
+        pageBgColor === "rgba(0, 0, 0, 0)" ||
+        pageBgColor === "transparent"
+      ) {
+        pageBgColor = answerBgColor;
+      }
 
-      // Clone the content we want (exclude action buttons and new reading button)
-      const titleElement = answerSectionRef.current.querySelector("h2");
-      const questionElement =
-        answerSectionRef.current.querySelector(".result-question");
-      const cardsElement =
-        answerSectionRef.current.querySelector(".result-cards");
-      const answerTextElement =
-        answerSectionRef.current.querySelector(".answer-text");
+      // Get the HTML content
+      let content = answerSectionRef.current.innerHTML;
 
-      if (titleElement) tempContainer.appendChild(titleElement.cloneNode(true));
-      if (questionElement)
-        tempContainer.appendChild(questionElement.cloneNode(true));
-      if (cardsElement) tempContainer.appendChild(cardsElement.cloneNode(true));
-      if (answerTextElement)
-        tempContainer.appendChild(answerTextElement.cloneNode(true));
+      // Remove Framer Motion attributes and inline styles
+      content = content
+        // Remove all data-framer-* attributes
+        .replace(/data-framer-[^=]*="[^"]*"/g, "")
+        // Remove initial, animate, transition style attributes
+        .replace(/initial="[^"]*"/g, "")
+        .replace(/animate="[^"]*"/g, "")
+        .replace(/transition="[^"]*"/g, "")
+        // Remove inline styles that might have motion values
+        .replace(/style="[^"]*transform[^"]*"/g, "")
+        .replace(/style="[^"]*opacity[^"]*"/g, "")
+        // Clean up any remaining empty style attributes
+        .replace(/style=""/g, "")
+        .replace(/style=''/g, "");
 
-      document.body.appendChild(tempContainer);
+      // Convert relative image paths to absolute URLs
+      content = content.replace(
+        /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
+        (match, before, src, after) => {
+          // If it's already an absolute URL (http/https), keep it
+          if (src.startsWith("http://") || src.startsWith("https://")) {
+            return match;
+          }
+          // If it's a relative path, make it absolute
+          const absoluteSrc = new URL(src, window.location.href).href;
+          return `<img${before}src="${absoluteSrc}"${after}>`;
+        }
+      );
 
-      const canvas = await html2canvas(tempContainer, {
-        backgroundColor:
-          getComputedStyle(document.body).backgroundColor || "#0a0a0a",
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: 0,
-        width: tempContainer.offsetWidth,
-        height: tempContainer.offsetHeight,
-      });
+      // Get computed styles
+      const styles = Array.from(document.styleSheets)
+        .map((styleSheet) => {
+          try {
+            return Array.from(styleSheet.cssRules)
+              .map((rule) => rule.cssText)
+              .join("\n");
+          } catch (e) {
+            // Cross-origin stylesheets will throw error, skip them
+            return "";
+          }
+        })
+        .join("\n");
 
-      // Clean up the temporary container
-      document.body.removeChild(tempContainer);
+      // Create print-friendly HTML
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Tarot Reading - ${new Date()
+              .toISOString()
+              .slice(0, 10)}</title>
+            <style>
+              ${styles}
+              * {
+                box-sizing: border-box;
+              }
+              body {
+                padding: 20px;
+                margin: 0;
+                background-color: ${pageBgColor};
+                color: ${textColor};
+                font-family: ${fontFamily};
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              .answer-section {
+                width: 100%;
+                max-width: 100%;
+                background-color: ${answerBgColor};
+                color: ${textColor};
+              }
+              .result-cards {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+              }
+              .result-card {
+                flex: 0 0 auto;
+              }
+              @media print {
+                @page {
+                  margin: 1.5cm;
+                  size: A4;
+                }
+                body { 
+                  margin: 0;
+                  padding: 0;
+                  display: block !important;
+                }
+                * {
+                  float: none !important;
+                  position: static !important;
+                }
+                .action-buttons, .new-reading-button, .auto-save-status { 
+                  display: none !important; 
+                }
+                h2 {
+                  margin-top: 0;
+                  page-break-after: avoid;
+                  color: var(--accent-glow, #d4a5ff) !important;
+                  font-family: "Playfair Display", serif !important;
+                }
+                h3 {
+                  page-break-after: avoid;
+                  margin-top: 1em;
+                  color: var(--accent-glow, #d4a5ff) !important;
+                  font-family: "Playfair Display", serif !important;
+                }
+                .saved-reading-info {
+                  page-break-after: avoid;
+                }
+                .result-question {
+                  page-break-inside: avoid;
+                  margin-bottom: 1em;
+                }
+                .result-cards {
+                  page-break-inside: avoid;
+                  margin: 1em 0;
+                }
+                .result-cards-grid {
+                  display: grid !important;
+                  grid-template-columns: repeat(3, 1fr) !important;
+                  gap: 1.5rem !important;
+                  max-width: 800px !important;
+                  margin: 0 auto !important;
+                  page-break-inside: avoid;
+                }
+                .result-card {
+                  display: flex !important;
+                  flex-direction: column !important;
+                  align-items: center !important;
+                  gap: 1rem !important;
+                  padding: 1rem !important;
+                  border: 2px solid var(--border-color) !important;
+                  border-radius: 12px !important;
+                  background: var(--bg-card) !important;
+                  box-shadow: none !important;
+                  page-break-inside: avoid;
+                  max-width: none !important;
+                }
+                .result-card:hover {
+                  box-shadow: none !important;
+                }
+                .result-card-image-container {
+                  width: 100% !important;
+                  aspect-ratio: 2 / 3 !important;
+                  border-radius: 8px !important;
+                  overflow: hidden !important;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  position: relative !important;
+                }
+                .result-card-image {
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                }
+                .result-card-name {
+                  font-family: "Playfair Display", serif !important;
+                  font-size: 1rem !important;
+                  color: var(--accent-glow) !important;
+                  text-align: center !important;
+                  font-weight: 600 !important;
+                }
+                .answer-text {
+                  margin-top: 1em;
+                }
+                .answer-text p {
+                  margin: 0.5em 0;
+                  orphans: 2;
+                  widows: 2;
+                }
+                img {
+                  max-width: 100% !important;
+                  height: auto !important;
+                  display: block;
+                  page-break-inside: avoid;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            ${content}
+          </body>
+        </html>
+      `);
 
-      const link = document.createElement("a");
-      link.download = `tarot-reading-${new Date()
-        .toISOString()
-        .slice(0, 10)}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+      printWindow.document.close();
+
+      // Wait for all resources to load
+      const waitForImages = () => {
+        const images = printWindow.document.querySelectorAll("img");
+        let loadedCount = 0;
+
+        if (images.length === 0) {
+          // No images, print immediately
+          setTimeout(() => {
+            printWindow.print();
+          }, 300);
+          return;
+        }
+
+        images.forEach((img) => {
+          if (img.complete) {
+            loadedCount++;
+            if (loadedCount === images.length) {
+              setTimeout(() => {
+                printWindow.print();
+              }, 300);
+            }
+          } else {
+            img.onload = () => {
+              loadedCount++;
+              if (loadedCount === images.length) {
+                setTimeout(() => {
+                  printWindow.print();
+                }, 300);
+              }
+            };
+            img.onerror = () => {
+              // If image fails to load, count it anyway
+              loadedCount++;
+              if (loadedCount === images.length) {
+                setTimeout(() => {
+                  printWindow.print();
+                }, 300);
+              }
+            };
+          }
+        });
+      };
+
+      // Wait for window to be ready
+      printWindow.onload = () => {
+        setTimeout(waitForImages, 200);
+      };
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      console.error("Failed to save screenshot: ", err);
+      console.error("Failed to save PDF: ", err);
+      alert(
+        "Failed to generate PDF. Please try using your browser's print dialog."
+      );
     }
   };
 
-  // Enhanced markdown parser for bold, italic, headers, and more
+  // Enhanced markdown parser for bold, italic, headers, lists, and more
   const parseMarkdown = (text) => {
-    return text
-      .split(/(\*\*.*?\*\*|\*.*?\*|#{1,6}.*$|`.*?`|~~.*?~~)/gm)
-      .map((part, index) => {
-        // Bold text
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={index}>{part.slice(2, -2)}</strong>;
+    if (!text) return text;
+
+    // Split by lines to handle different elements
+    const lines = text.split("\n");
+    const result = [];
+    let listItems = [];
+    let inList = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Check for bullet point (- or *)
+      if (/^\s*[-*]\s+/.test(line)) {
+        if (!inList) {
+          inList = true;
         }
-        // Italic text
-        else if (part.startsWith("*") && part.endsWith("*")) {
-          return <em key={index}>{part.slice(1, -1)}</em>;
+        const content = line.replace(/^\s*[-*]\s+/, "");
+        listItems.push(parseInlineMarkdown(content));
+      }
+      // Check for numbered list
+      else if (/^\s*\d+\.\s+/.test(line)) {
+        if (!inList) {
+          inList = true;
         }
-        // Strikethrough text
-        else if (part.startsWith("~~") && part.endsWith("~~")) {
-          return (
-            <del key={index} className="markdown-del">
-              {part.slice(2, -2)}
-            </del>
+        const content = line.replace(/^\s*\d+\.\s+/, "");
+        listItems.push(parseInlineMarkdown(content));
+      }
+      // Empty line - close any open list
+      else if (line.trim() === "") {
+        if (inList && listItems.length > 0) {
+          result.push(
+            <ul key={`list-${result.length}`} className="markdown-list">
+              {listItems.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          );
+          listItems = [];
+          inList = false;
+        }
+        if (result.length > 0 || i < lines.length - 1) {
+          result.push(<br key={`br-${i}`} />);
+        }
+      }
+      // Regular line or header
+      else {
+        // Close any open list
+        if (inList && listItems.length > 0) {
+          result.push(
+            <ul key={`list-${result.length}`} className="markdown-list">
+              {listItems.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          );
+          listItems = [];
+          inList = false;
+        }
+
+        // Check for horizontal rule
+        if (/^---+$/.test(line.trim())) {
+          result.push(<hr key={i} className="markdown-hr" />);
+        }
+        // Check for block quote
+        else if (/^>\s+/.test(line)) {
+          const content = line.replace(/^>\s+/, "");
+          result.push(
+            <blockquote key={i} className="markdown-blockquote">
+              {parseInlineMarkdown(content)}
+            </blockquote>
           );
         }
-        // Inline code
-        else if (part.startsWith("`") && part.endsWith("`")) {
-          return (
-            <code key={index} className="markdown-code">
-              {part.slice(1, -1)}
-            </code>
-          );
-        }
-        // Headers
-        else if (part.startsWith("###")) {
-          return (
-            <h3 key={index} className="markdown-h3">
-              {part.slice(3).trim()}
+        // Check for headers
+        else if (line.startsWith("###")) {
+          result.push(
+            <h3 key={i} className="markdown-h3">
+              {parseInlineMarkdown(line.substring(3).trim())}
             </h3>
           );
-        } else if (part.startsWith("##")) {
-          return (
-            <h2 key={index} className="markdown-h2">
-              {part.slice(2).trim()}
+        } else if (line.startsWith("##")) {
+          result.push(
+            <h2 key={i} className="markdown-h2">
+              {parseInlineMarkdown(line.substring(2).trim())}
             </h2>
           );
-        } else if (part.startsWith("#")) {
-          return (
-            <h1 key={index} className="markdown-h1">
-              {part.slice(1).trim()}
+        } else if (line.startsWith("#")) {
+          result.push(
+            <h1 key={i} className="markdown-h1">
+              {parseInlineMarkdown(line.substring(1).trim())}
             </h1>
           );
+        } else {
+          result.push(<span key={i}>{parseInlineMarkdown(line.trim())}</span>);
         }
-        return part;
-      });
+
+        // Add line break if not last line and next line is not empty
+        if (i < lines.length - 1 && lines[i + 1].trim() !== "") {
+          result.push(<br key={`br-after-${i}`} />);
+        }
+      }
+    }
+
+    // Close any remaining list
+    if (inList && listItems.length > 0) {
+      result.push(
+        <ul key={`list-${result.length}`} className="markdown-list">
+          {listItems.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
+
+    return result.length > 0 ? result : text;
+  };
+
+  // Parse inline markdown (bold, italic, etc.)
+  const parseInlineMarkdown = (text) => {
+    if (!text) return text;
+
+    // First pass: handle links and images (these are more complex)
+    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (match, linkText, url) => {
+      return `___LINK_START___${linkText}___LINK_URL___${url}___LINK_END___`;
+    });
+
+    text = text.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, (match, alt, src) => {
+      return `___IMAGE_START___${
+        alt || ""
+      }___IMAGE_URL___${src}___IMAGE_END___`;
+    });
+
+    // Process the text through multiple passes to handle nested markdown
+    const parts = [];
+    let currentIndex = 0;
+
+    // Find all markdown patterns (including placeholders for links/images)
+    const patterns = [
+      {
+        regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
+        type: "link",
+      },
+      {
+        regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
+        type: "image",
+      },
+      { regex: /\*\*(.*?)\*\*/g, type: "bold" },
+      { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
+      { regex: /~~(.*?)~~/g, type: "strikethrough" },
+      { regex: /`(.*?)`/g, type: "code" },
+    ];
+
+    let allMatches = [];
+    patterns.forEach(({ regex, type }) => {
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        allMatches.push({
+          index: match.index,
+          length: match[0].length,
+          text: match[1],
+          url: match[2], // For links and images
+          type,
+        });
+      }
+    });
+
+    // Sort matches by index
+    allMatches.sort((a, b) => a.index - b.index);
+
+    // Build result
+    let lastIndex = 0;
+    for (let i = 0; i < allMatches.length; i++) {
+      const match = allMatches[i];
+
+      // Add text before this match
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+
+      // Process nested patterns in the match text
+      const processedText = processNestedMarkdown(match.text, parts.length);
+
+      // Add the formatted content
+      switch (match.type) {
+        case "link":
+          parts.push(
+            <a
+              key={parts.length}
+              href={match.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="markdown-link"
+            >
+              {match.text}
+            </a>
+          );
+          break;
+        case "image":
+          parts.push(
+            <img
+              key={parts.length}
+              src={match.url}
+              alt={match.text}
+              className="markdown-image"
+            />
+          );
+          break;
+        case "bold":
+          parts.push(<strong key={parts.length}>{processedText}</strong>);
+          break;
+        case "italic":
+          parts.push(<em key={parts.length}>{processedText}</em>);
+          break;
+        case "strikethrough":
+          parts.push(
+            <del key={parts.length} className="markdown-del">
+              {processedText}
+            </del>
+          );
+          break;
+        case "code":
+          parts.push(
+            <code key={parts.length} className="markdown-code">
+              {processedText}
+            </code>
+          );
+          break;
+      }
+
+      lastIndex = match.index + match.length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : text;
+  };
+
+  // Recursively process nested markdown
+  const processNestedMarkdown = (text, keyPrefix) => {
+    // Only process nested patterns (not the outer ones)
+    const parts = [];
+    let current = text;
+    let key = 0;
+
+    // Process bold
+    if (!text.includes("**")) {
+      if (/\*[^*]+\*/.test(current)) {
+        const parts = [];
+        const regex = /\*([^*]+?)\*/g;
+        let match;
+        let lastIndex = 0;
+
+        while ((match = regex.exec(current)) !== null) {
+          if (match.index > lastIndex) {
+            parts.push(current.substring(lastIndex, match.index));
+          }
+          parts.push(<em key={`${keyPrefix}-n-${key++}`}>{match[1]}</em>);
+          lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < current.length) {
+          parts.push(current.substring(lastIndex));
+        }
+
+        if (parts.length > 0) {
+          return parts;
+        }
+      }
+    }
+
+    return text;
   };
 
   return (
@@ -288,13 +749,7 @@ function AnswerDisplay({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1, ...springTransition }}
       >
-        <div className="answer-text">
-          {answer.split("\n").map((paragraph, i) => (
-            <p key={i} style={{ marginBottom: "1rem" }}>
-              {parseMarkdown(paragraph)}
-            </p>
-          ))}
-        </div>
+        <div className="answer-text">{parseMarkdown(answer)}</div>
 
         {/* Auto-save Status */}
         {isGoogleSignedIn && (
@@ -364,9 +819,9 @@ function AnswerDisplay({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.25, ...springTransition }}
-            aria-label={saved ? t("saved") : t("saveImage")}
+            aria-label={saved ? t("saved") : t("savePDF")}
           >
-            {saved ? `✓ ${t("saved")}` : `📸 ${t("saveImage")}`}
+            {saved ? `✓ ${t("saved")}` : `📄 ${t("savePDF")}`}
           </motion.button>
 
           <motion.button

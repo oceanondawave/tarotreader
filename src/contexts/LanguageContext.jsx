@@ -21,11 +21,11 @@ const translations = {
     shuffling: "Đang Xáo Bài...",
     quickSelectPlaceholder: "Chọn nhanh theo số",
     quickSelectInstructions:
-      "Hướng dẫn: Nhập số để chọn lá bài, sau đó nhấn Enter để chọn (không cần di chuyển đến nút Chọn). Sau khi chọn đủ 3 lá, nhấn Hoàn thành để quay lại menu và xem kết quả. Nếu muốn bỏ chọn lá nào, sử dụng menu thả xuống bên dưới.",
+      "Hướng dẫn: Nhập số để chọn lá bài, sau đó nhấn Enter để chọn (không cần di chuyển đến nút Chọn). Sau khi chọn đủ 3 lá, nhấn Hoàn thành để quay lại menu và xem kết quả. Nếu muốn bỏ chọn lá nào, nhấn vào nút bỏ chọn bên dưới.",
     quickSelectDescription: "Nhập vị trí từ 1 đến {count} để chọn lá bài",
     removeCardLabel: "Bỏ chọn lá bài:",
     selectCardToRemove: "Chọn lá bài để bỏ chọn...",
-    positionLabel: "Vị trí {position}: {name}",
+    positionLabel: "Vị trí {position} - {name}",
     selectedPositions: "Đã chọn vị trí: {positions}",
     inputPlaceholder: "Nhập vị trí...",
     selectButton: "Chọn",
@@ -39,6 +39,7 @@ const translations = {
     copied: "Đã sao chép!",
     buyCoffee: "Tặng tác giả cà phê muối",
     saveImage: "Lưu hình ảnh",
+    savePDF: "Lưu PDF",
     saved: "Đã lưu!",
     cardLabel: "Lá bài {position}: {name}, {status}{disabled}",
     cardLabelWithRow:
@@ -108,6 +109,10 @@ const translations = {
     close: "Đóng",
     signInPrompt: "Đăng nhập để tự động lưu kết quả vào Google Drive",
     privacyInfo: "Chỉ lưu vào Google Sheets của bạn, hoàn toàn riêng tư",
+    googleVerificationWarning:
+      "⚠️ Nếu Google hiển thị cảnh báo 'Ứng dụng chưa được xác minh', hãy chọn 'Nâng cao' và 'Đi tới ...' để bỏ qua cảnh báo. Hãy nhớ cấp tất cả các quyền cần thiết (chỉ các quyền để tạo sheet lưu dữ liệu, tác giả không yêu cầu gì khác).",
+    dataLoadTroubleshoot:
+      "💡 Nếu không tải được dữ liệu hoặc có lỗi xảy ra, hãy thử đăng xuất và đăng nhập lại.",
     driveCaution:
       "⚠️ Cảnh báo: Xóa hoặc chỉnh sửa sheet có thể gây hỏng dữ liệu. Vui lòng không thực hiện.",
     modalTitle: "Lượt Bói Của Bạn",
@@ -180,11 +185,11 @@ const translations = {
     shuffling: "Shuffling...",
     quickSelectPlaceholder: "Quick select by number",
     quickSelectInstructions:
-      "Instructions: Enter numbers to select cards, then press Enter to select (no need to move to the Select button). After selecting 3 cards, click Done to return to menu and view results. If you want to remove any card, use the dropdown menu below.",
+      "Instructions: Enter numbers to select cards, then press Enter to select (no need to move to the Select button). After selecting 3 cards, click Done to return to menu and view results. If you want to remove any card, click the remove button below.",
     quickSelectDescription: "Enter position from 1 to {count} to select card",
     removeCardLabel: "Remove card:",
     selectCardToRemove: "Select card to remove...",
-    positionLabel: "Position {position}: {name}",
+    positionLabel: "Position {position} - {name}",
     selectedPositions: "Selected positions: {positions}",
     inputPlaceholder: "Enter position...",
     selectButton: "Select",
@@ -198,6 +203,7 @@ const translations = {
     copied: "Copied!",
     buyCoffee: "Buy author a coffee",
     saveImage: "Save Image",
+    savePDF: "Save PDF",
     saved: "Saved!",
     cardLabel: "Card {position}: {name}, {status}{disabled}",
     cardLabelWithRow:
@@ -270,6 +276,10 @@ const translations = {
     close: "Close",
     signInPrompt: "Sign in to automatically save your results to Google Drive",
     privacyInfo: "Save only to your Google Sheets, completely private",
+    googleVerificationWarning:
+      "⚠️ If Google shows 'This app isn't verified' warning, click 'Advanced' and 'Go to...' to skip the warning. Remember to grant all required permissions (only permissions to create sheet to store data, author does not request anything else).",
+    dataLoadTroubleshoot:
+      "💡 If you cannot load data or any error occurs, try to sign out and sign in again.",
 
     // Modal
     modalTitle: "Your Reading",
