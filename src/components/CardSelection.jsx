@@ -100,6 +100,45 @@ function CardSelection({
     }
   }, [selectedCards]);
 
+  // Arrow key navigation for screen readers
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only handle if a modal is open
+      if (!showQuickSelectModal && !showManualSelectModal) return;
+
+      // Get all focusable elements in the modal
+      const modalElement = modalRef.current;
+      if (!modalElement) return;
+
+      const focusableElements = modalElement.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const focusableArray = Array.from(focusableElements).filter(
+        (el) => !el.disabled && el.offsetParent !== null
+      );
+
+      if (focusableArray.length === 0) return;
+
+      const currentIndex = focusableArray.indexOf(document.activeElement);
+
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        const nextIndex = (currentIndex + 1) % focusableArray.length;
+        focusableArray[nextIndex].focus();
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const nextIndex =
+          currentIndex - 1 < 0 ? focusableArray.length - 1 : currentIndex - 1;
+        focusableArray[nextIndex].focus();
+      }
+    };
+
+    if (showQuickSelectModal || showManualSelectModal) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [showQuickSelectModal, showManualSelectModal]);
+
   // Focus trapping effect for modals
   useEffect(() => {
     if ((showQuickSelectModal || showManualSelectModal) && modalRef.current) {

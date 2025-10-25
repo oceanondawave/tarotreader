@@ -36,6 +36,23 @@ function ConfirmationModal({ isOpen, onConfirm, onCancel }) {
             }
           }
         }
+
+        // Arrow key navigation for screen readers
+        const focusableArray = Array.from(focusableElements).filter(
+          (el) => !el.disabled && el.offsetParent !== null
+        );
+        const currentIndex = focusableArray.indexOf(document.activeElement);
+
+        if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+          e.preventDefault();
+          const nextIndex = (currentIndex + 1) % focusableArray.length;
+          focusableArray[nextIndex].focus();
+        } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          const nextIndex =
+            currentIndex - 1 < 0 ? focusableArray.length - 1 : currentIndex - 1;
+          focusableArray[nextIndex].focus();
+        }
       };
 
       const preventFocus = (e) => {
