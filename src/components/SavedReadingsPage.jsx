@@ -4,80 +4,100 @@ import { useLanguage } from "../contexts/LanguageContext";
 import googleDriveService from "../services/googleDriveService";
 
 // Helper function to parse markdown for display
+// Simplified for older Safari compatibility
 const parseMarkdown = (text) => {
   if (!text) return text;
 
-  // Simplified inline markdown parsing for preview
-  const parts = [];
-  let currentIndex = 0;
-
-  // Find all markdown patterns
-  const patterns = [
-    { regex: /\*\*(.*?)\*\*/g, type: "bold" },
-    { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
-    { regex: /~~(.*?)~~/g, type: "strikethrough" },
-    { regex: /`(.*?)`/g, type: "code" },
-  ];
-
-  let allMatches = [];
-  patterns.forEach(({ regex, type }) => {
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      allMatches.push({
-        index: match.index,
-        length: match[0].length,
-        text: match[1],
-        type,
-      });
-    }
-  });
-
-  // Sort matches by index
-  allMatches.sort((a, b) => a.index - b.index);
-
-  // Build result
-  let lastIndex = 0;
-  for (let i = 0; i < allMatches.length; i++) {
-    const match = allMatches[i];
-
-    // Add text before this match
-    if (match.index > lastIndex) {
-      parts.push(text.substring(lastIndex, match.index));
-    }
-
-    // Add the formatted content
-    switch (match.type) {
-      case "bold":
-        parts.push(<strong key={parts.length}>{match.text}</strong>);
-        break;
-      case "italic":
-        parts.push(<em key={parts.length}>{match.text}</em>);
-        break;
-      case "strikethrough":
-        parts.push(
-          <del key={parts.length} className="markdown-del">
-            {match.text}
-          </del>
-        );
-        break;
-      case "code":
-        parts.push(
-          <code key={parts.length} className="markdown-code">
-            {match.text}
-          </code>
-        );
-        break;
-    }
-
-    lastIndex = match.index + match.length;
+  // Check if browser supports lookbehind assertions
+  let supportsLookbehind = false;
+  try {
+    new RegExp("(?<=test)");
+    supportsLookbehind = true;
+  } catch (e) {
+    supportsLookbehind = false;
   }
 
-  // Add remaining text
-  if (lastIndex < text.length) {
-    parts.push(text.substring(lastIndex));
+  // For browsers without lookbehind support, use simpler parsing
+  if (!supportsLookbehind) {
+    // Simple bold replacement only (no JSX for compatibility)
+    return text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   }
 
-  return parts.length > 0 ? parts : text;
+  // Original parsing for modern browsers
+  try {
+    const parts = [];
+
+    // Find all markdown patterns
+    const patterns = [
+      { regex: /\*\*(.*?)\*\*/g, type: "bold" },
+      { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
+      { regex: /~~(.*?)~~/g, type: "strikethrough" },
+      { regex: /`(.*?)`/g, type: "code" },
+    ];
+
+    let allMatches = [];
+    patterns.forEach(({ regex, type }) => {
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        allMatches.push({
+          index: match.index,
+          length: match[0].length,
+          text: match[1],
+          type,
+        });
+      }
+    });
+
+    // Sort matches by index
+    allMatches.sort((a, b) => a.index - b.index);
+
+    // Build result
+    let lastIndex = 0;
+    for (let i = 0; i < allMatches.length; i++) {
+      const match = allMatches[i];
+
+      // Add text before this match
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+
+      // Add the formatted content
+      switch (match.type) {
+        case "bold":
+          parts.push(<strong key={parts.length}>{match.text}</strong>);
+          break;
+        case "italic":
+          parts.push(<em key={parts.length}>{match.text}</em>);
+          break;
+        case "strikethrough":
+          parts.push(
+            <del key={parts.length} className="markdown-del">
+              {match.text}
+            </del>
+          );
+          break;
+        case "code":
+          parts.push(
+            <code key={parts.length} className="markdown-code">
+              {match.text}
+            </code>
+          );
+          break;
+      }
+
+      lastIndex = match.index + match.length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : text;
+  } catch (e) {
+    // Fallback to simple text if parsing fails
+    return text;
+  }
 };
 
 // Helper function to remove markdown from text
@@ -511,9 +531,18 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
 
                   <div className="reading-preview">
                     <span className="preview-icon">📖</span>
-                    <span>
-                      {parseMarkdown(reading.answer.substring(0, 100))}...
-                    </span>
+                    {(() => {
+                      const preview = parseMarkdown(
+                        reading.answer.substring(0, 100)
+                      );
+                      return typeof preview === "string" ? (
+                        <span
+                          dangerouslySetInnerHTML={{ __html: preview + "..." }}
+                        />
+                      ) : (
+                        <span>{preview}...</span>
+                      );
+                    })()}
                   </div>
 
                   <div className="reading-actions">
