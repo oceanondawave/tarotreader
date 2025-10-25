@@ -110,7 +110,7 @@ const translations = {
     signInPrompt: "Đăng nhập để tự động lưu kết quả vào Google Drive",
     privacyInfo: "Chỉ lưu vào Google Sheets của bạn, hoàn toàn riêng tư",
     googleVerificationWarning:
-      "⚠️ Nếu Google hiển thị cảnh báo 'Ứng dụng chưa được xác minh', hãy chọn 'Nâng cao' và 'Đi tới ...' để bỏ qua cảnh báo. Hãy nhớ cấp tất cả các quyền cần thiết (chỉ các quyền để tạo sheet lưu dữ liệu, tác giả không yêu cầu gì khác).",
+      "⚠️ Nếu Google hiển thị cảnh báo 'Ứng dụng chưa được xác minh', hãy chọn 'Nâng cao' và 'Đi tới...' để bỏ qua cảnh báo. Hãy nhớ cấp tất cả các quyền cần thiết (chỉ các quyền để tạo sheet lưu dữ liệu, tác giả không yêu cầu gì khác).",
     dataLoadTroubleshoot:
       "💡 Nếu không tải được dữ liệu hoặc có lỗi xảy ra, hãy thử đăng xuất và đăng nhập lại.",
     driveCaution:
