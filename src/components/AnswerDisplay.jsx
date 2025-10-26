@@ -191,16 +191,44 @@ function AnswerDisplay({
     try {
       if (!answerSectionRef.current) return;
 
-      // Convert card images to base64
+      // Check for browser compatibility
+      if (typeof fetch === "undefined" || typeof FileReader === "undefined") {
+        alert(
+          "PDF generation is not supported on this browser. Please update your browser or use the Copy Result feature instead."
+        );
+        return;
+      }
+
+      // Convert card images to base64 with error handling
       const cardImages = await Promise.all(
         cards.map(async (card) => {
           try {
             const response = await fetch(card.image);
+            if (!response.ok) {
+              console.error("Failed to fetch card image:", card.image);
+              return null;
+            }
             const blob = await response.blob();
-            return new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
+            return new Promise((resolve, reject) => {
+              try {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  if (reader.error) {
+                    console.error("FileReader error:", reader.error);
+                    resolve(null);
+                  } else {
+                    resolve(reader.result);
+                  }
+                };
+                reader.onerror = () => {
+                  console.error("FileReader error for image:", card.image);
+                  resolve(null);
+                };
+                reader.readAsDataURL(blob);
+              } catch (error) {
+                console.error("Error creating FileReader:", error);
+                resolve(null);
+              }
             });
           } catch (error) {
             console.error("Error loading card image:", error);
@@ -466,16 +494,36 @@ function AnswerDisplay({
         pageSize: "A4",
       };
 
-      // Generate and download PDF
-      pdfMake
-        .createPdf(docDefinition)
-        .download(`tarot-reading-${new Date().toISOString().slice(0, 10)}.pdf`);
+      // Generate and download PDF with error handling
+      try {
+        pdfMake
+          .createPdf(docDefinition)
+          .download(
+            `tarot-reading-${new Date().toISOString().slice(0, 10)}.pdf`
+          );
 
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } catch (pdfError) {
+        console.error("pdfMake error:", pdfError);
+        // Fallback: show alert with more details
+        let errorMessage = "Failed to generate PDF. ";
+        if (pdfError && pdfError.message) {
+          errorMessage += pdfError.message;
+        }
+        errorMessage +=
+          " Please try again or use the Copy Result feature instead.";
+        alert(errorMessage);
+      }
     } catch (err) {
       console.error("Failed to save PDF: ", err);
-      alert("Failed to generate PDF. Please try again.");
+      let errorMessage = "Failed to generate PDF. ";
+      if (err && err.message) {
+        errorMessage += err.message;
+      }
+      errorMessage +=
+        " Please try again or use the Copy Result feature instead.";
+      alert(errorMessage);
     }
   };
 
