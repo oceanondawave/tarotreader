@@ -68,24 +68,65 @@ function ThinkingAnimation() {
       animate={{ opacity: 1, scale: 1 }}
       transition={springTransition}
     >
-      <div className="thinking-animation">
+      {/* Apple Intelligence Style Animation */}
+      <div
+        className="apple-intelligence-animation"
+        style={{
+          width: "140px",
+          height: "140px",
+          margin: "0 auto 2rem",
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* Main gradient orb with glow */}
         <motion.div
-          className="orb"
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle at 30% 30%, #e0aaff, #9d4edd, #7c3aed)",
+            boxShadow: `
+              0 0 60px rgba(157, 78, 221, 0.6),
+              0 0 100px rgba(224, 170, 255, 0.4),
+              0 0 140px rgba(124, 58, 237, 0.3),
+              inset 0 0 40px rgba(255, 255, 255, 0.1)
+            `,
+            position: "relative",
+          }}
           animate={{
-            scale: [1, 1.15, 1],
+            scale: [1, 1.08, 1],
             boxShadow: [
-              "0 0 60px rgba(157, 78, 221, 0.3), 0 0 100px rgba(157, 78, 221, 0.2)",
-              "0 0 90px rgba(157, 78, 221, 0.6), 0 0 140px rgba(157, 78, 221, 0.4)",
-              "0 0 60px rgba(157, 78, 221, 0.3), 0 0 100px rgba(157, 78, 221, 0.2)",
+              "0 0 60px rgba(157, 78, 221, 0.6), 0 0 100px rgba(224, 170, 255, 0.4), 0 0 140px rgba(124, 58, 237, 0.3)",
+              "0 0 90px rgba(157, 78, 221, 0.8), 0 0 140px rgba(224, 170, 255, 0.6), 0 0 180px rgba(124, 58, 237, 0.5)",
+              "0 0 60px rgba(157, 78, 221, 0.6), 0 0 100px rgba(224, 170, 255, 0.4), 0 0 140px rgba(124, 58, 237, 0.3)",
             ],
           }}
           transition={{
-            duration: 2.5,
+            duration: 3,
             repeat: Infinity,
             ease: "easeInOut",
           }}
           aria-hidden="true"
-        />
+        >
+          {/* Inner highlight */}
+          <div
+            style={{
+              position: "absolute",
+              top: "20%",
+              left: "20%",
+              width: "40%",
+              height: "40%",
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent)",
+              filter: "blur(8px)",
+            }}
+          />
+        </motion.div>
       </div>
 
       <motion.div
@@ -194,41 +235,6 @@ function ThinkingAnimation() {
           {t("aiCaution")}
         </p>
       </motion.div>
-
-      {/* Floating particles with enhanced animation */}
-      {[...Array(16)].map((_, i) => (
-        <motion.div
-          key={i}
-          style={{
-            position: "absolute",
-            width: `${4 + Math.random() * 2}px`,
-            height: `${4 + Math.random() * 2}px`,
-            background: "var(--accent-glow)",
-            borderRadius: "50%",
-            left: "50%",
-            top: "50%",
-          }}
-          animate={{
-            x: [
-              0,
-              Math.cos((i * 22.5 * Math.PI) / 180) * (120 + Math.random() * 40),
-            ],
-            y: [
-              0,
-              Math.sin((i * 22.5 * Math.PI) / 180) * (120 + Math.random() * 40),
-            ],
-            opacity: [0, 0.8, 0.8, 0],
-            scale: [0, 1.2, 1, 0],
-          }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            delay: i * 0.08,
-            ease: [0.34, 1.56, 0.64, 1],
-          }}
-          aria-hidden="true"
-        />
-      ))}
     </motion.div>
   );
 }

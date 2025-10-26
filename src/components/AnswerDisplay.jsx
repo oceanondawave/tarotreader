@@ -2,6 +2,33 @@ import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import googleDriveService from "../services/googleDriveService";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+
+// Initialize pdfMake fonts
+try {
+  if (pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
+    pdfMake.vfs = pdfFonts.pdfMake.vfs;
+  }
+  // Set default font - using the built-in fonts from pdfmake
+  // The vfs_fonts already includes Roboto fonts as base64
+  pdfMake.fonts = {
+    Roboto: {
+      normal: "Roboto-Regular.ttf",
+      bold: "Roboto-Medium.ttf",
+      italics: "Roboto-Italic.ttf",
+      bolditalics: "Roboto-MediumItalic.ttf",
+    },
+  };
+
+  // Set default font
+  pdfMake.fonts = pdfMake.fonts || {};
+  if (!pdfMake.fonts.Roboto) {
+    pdfMake.fonts.Roboto = {};
+  }
+} catch (error) {
+  console.error("Error initializing pdfMake fonts:", error);
+}
 
 const springTransition = {
   type: "spring",
@@ -26,6 +53,7 @@ function AnswerDisplay({
   const [saved, setSaved] = useState(false);
   const [autoSaved, setAutoSaved] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const answerSectionRef = useRef(null);
   const hasAutoSaved = useRef(false);
 
@@ -54,6 +82,7 @@ function AnswerDisplay({
   const handleAutoSave = async () => {
     try {
       setSaveError(null);
+      setIsSaving(true);
       const readingData = {
         question: question || "",
         cards: cards,
@@ -62,6 +91,7 @@ function AnswerDisplay({
       };
 
       await googleDriveService.saveReading(readingData);
+      setIsSaving(false);
       setAutoSaved(true);
       setTimeout(() => setAutoSaved(false), 3000);
 
@@ -71,6 +101,7 @@ function AnswerDisplay({
       }
     } catch (error) {
       console.error("Auto-save failed:", error);
+      setIsSaving(false);
       setSaveError(error.message || t("saveFailed"));
     }
   };
@@ -156,282 +187,295 @@ function AnswerDisplay({
     }
   };
 
-  const handleSaveScreenshot = () => {
+  const handleSaveScreenshot = async () => {
     try {
       if (!answerSectionRef.current) return;
 
-      // Create a new window for printing
-      const printWindow = window.open("", "_blank");
-
-      // Get the computed styles from the original element to preserve theme
-      const computedStyle = getComputedStyle(answerSectionRef.current);
-      const answerBgColor = computedStyle.backgroundColor;
-      const textColor = computedStyle.color;
-      const fontFamily = computedStyle.fontFamily;
-
-      // Try to get the actual page background (check html element or use answer-section background as fallback)
-      let pageBgColor = getComputedStyle(
-        document.documentElement
-      ).backgroundColor;
-      // If html is also transparent/transparent, use the answer section background
-      if (
-        !pageBgColor ||
-        pageBgColor === "rgba(0, 0, 0, 0)" ||
-        pageBgColor === "transparent"
-      ) {
-        pageBgColor = answerBgColor;
-      }
-
-      // Get the HTML content
-      let content = answerSectionRef.current.innerHTML;
-
-      // Remove Framer Motion attributes and inline styles
-      content = content
-        // Remove all data-framer-* attributes
-        .replace(/data-framer-[^=]*="[^"]*"/g, "")
-        // Remove initial, animate, transition style attributes
-        .replace(/initial="[^"]*"/g, "")
-        .replace(/animate="[^"]*"/g, "")
-        .replace(/transition="[^"]*"/g, "")
-        // Remove inline styles that might have motion values
-        .replace(/style="[^"]*transform[^"]*"/g, "")
-        .replace(/style="[^"]*opacity[^"]*"/g, "")
-        // Clean up any remaining empty style attributes
-        .replace(/style=""/g, "")
-        .replace(/style=''/g, "");
-
-      // Convert relative image paths to absolute URLs
-      content = content.replace(
-        /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
-        (match, before, src, after) => {
-          // If it's already an absolute URL (http/https), keep it
-          if (src.startsWith("http://") || src.startsWith("https://")) {
-            return match;
-          }
-          // If it's a relative path, make it absolute
-          const absoluteSrc = new URL(src, window.location.href).href;
-          return `<img${before}src="${absoluteSrc}"${after}>`;
-        }
-      );
-
-      // Get computed styles
-      const styles = Array.from(document.styleSheets)
-        .map((styleSheet) => {
+      // Convert card images to base64
+      const cardImages = await Promise.all(
+        cards.map(async (card) => {
           try {
-            return Array.from(styleSheet.cssRules)
-              .map((rule) => rule.cssText)
-              .join("\n");
-          } catch (e) {
-            // Cross-origin stylesheets will throw error, skip them
-            return "";
+            const response = await fetch(card.image);
+            const blob = await response.blob();
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            });
+          } catch (error) {
+            console.error("Error loading card image:", error);
+            return null;
           }
         })
-        .join("\n");
+      );
 
-      // Create print-friendly HTML
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>Tarot Reading - ${new Date()
-              .toISOString()
-              .slice(0, 10)}</title>
-            <style>
-              ${styles}
-              * {
-                box-sizing: border-box;
-              }
-              body {
-                padding: 20px;
-                margin: 0;
-                background-color: ${pageBgColor};
-                color: ${textColor};
-                font-family: ${fontFamily};
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              .answer-section {
-                width: 100%;
-                max-width: 100%;
-                background-color: ${answerBgColor};
-                color: ${textColor};
-              }
-              .result-cards {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1rem;
-              }
-              .result-card {
-                flex: 0 0 auto;
-              }
-              @media print {
-                @page {
-                  margin: 1.5cm;
-                  size: A4;
-                }
-                body { 
-                  margin: 0;
-                  padding: 0;
-                  display: block !important;
-                }
-                * {
-                  float: none !important;
-                  position: static !important;
-                }
-                .action-buttons, .new-reading-button, .auto-save-status { 
-                  display: none !important; 
-                }
-                h2 {
-                  margin-top: 0;
-                  page-break-after: avoid;
-                  color: var(--accent-glow, #d4a5ff) !important;
-                  font-family: "Playfair Display", serif !important;
-                }
-                h3 {
-                  page-break-after: avoid;
-                  margin-top: 1em;
-                  color: var(--accent-glow, #d4a5ff) !important;
-                  font-family: "Playfair Display", serif !important;
-                }
-                .saved-reading-info {
-                  page-break-after: avoid;
-                }
-                .result-question {
-                  page-break-inside: avoid;
-                  margin-bottom: 1em;
-                }
-                .result-cards {
-                  page-break-inside: avoid;
-                  margin: 1em 0;
-                }
-                .result-cards-grid {
-                  display: grid !important;
-                  grid-template-columns: repeat(3, 1fr) !important;
-                  gap: 1.5rem !important;
-                  max-width: 800px !important;
-                  margin: 0 auto !important;
-                  page-break-inside: avoid;
-                }
-                .result-card {
-                  display: flex !important;
-                  flex-direction: column !important;
-                  align-items: center !important;
-                  gap: 1rem !important;
-                  padding: 1rem !important;
-                  border: 2px solid var(--border-color) !important;
-                  border-radius: 12px !important;
-                  background: var(--bg-card) !important;
-                  box-shadow: none !important;
-                  page-break-inside: avoid;
-                  max-width: none !important;
-                }
-                .result-card:hover {
-                  box-shadow: none !important;
-                }
-                .result-card-image-container {
-                  width: 100% !important;
-                  aspect-ratio: 2 / 3 !important;
-                  border-radius: 8px !important;
-                  overflow: hidden !important;
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                  display: flex !important;
-                  align-items: center !important;
-                  justify-content: center !important;
-                  position: relative !important;
-                }
-                .result-card-image {
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                }
-                .result-card-name {
-                  font-family: "Playfair Display", serif !important;
-                  font-size: 1rem !important;
-                  color: var(--accent-glow) !important;
-                  text-align: center !important;
-                  font-weight: 600 !important;
-                }
-                .answer-text {
-                  margin-top: 1em;
-                }
-                .answer-text p {
-                  margin: 0.5em 0;
-                  orphans: 2;
-                  widows: 2;
-                }
-                img {
-                  max-width: 100% !important;
-                  height: auto !important;
-                  display: block;
-                  page-break-inside: avoid;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            ${content}
-          </body>
-        </html>
-      `);
+      // Create PDF content structure with images
+      const cardRows = cards.map((card, index) => {
+        const imageDataUrl = cardImages[index];
+        const cell = {
+          stack: [
+            ...(imageDataUrl
+              ? [
+                  {
+                    image: imageDataUrl,
+                    width: 80,
+                    height: 120,
+                    margin: [0, 5, 0, 5],
+                  },
+                ]
+              : []),
+            {
+              text: card.name,
+              style: "cardName",
+              alignment: "center",
+              margin: [0, 5, 0, 5],
+            },
+          ],
+          alignment: "center",
+          border: [false, false, false, false],
+        };
+        return cell;
+      });
 
-      printWindow.document.close();
+      // Parse markdown and convert to pdfMake format
+      const parseMarkdownForPDF = (text) => {
+        if (!text) return [];
 
-      // Wait for all resources to load
-      const waitForImages = () => {
-        const images = printWindow.document.querySelectorAll("img");
-        let loadedCount = 0;
+        const lines = text.split("\n");
+        const result = [];
 
-        if (images.length === 0) {
-          // No images, print immediately
-          setTimeout(() => {
-            printWindow.print();
-          }, 300);
-          return;
+        for (const line of lines) {
+          if (!line.trim()) {
+            result.push({ text: "\n" });
+            continue;
+          }
+
+          // Headers
+          if (line.startsWith("### ")) {
+            const content = line.substring(4);
+            const parsedContent = parseInlineMarkdownPDF(content);
+            result.push({
+              text: Array.isArray(parsedContent)
+                ? parsedContent
+                : [{ text: parsedContent }],
+              style: "h3",
+              margin: [0, 5, 0, 3],
+            });
+          } else if (line.startsWith("## ")) {
+            const content = line.substring(3);
+            const parsedContent = parseInlineMarkdownPDF(content);
+            result.push({
+              text: Array.isArray(parsedContent)
+                ? parsedContent
+                : [{ text: parsedContent }],
+              style: "h2",
+              margin: [0, 8, 0, 5],
+            });
+          } else if (line.startsWith("# ")) {
+            const content = line.substring(2);
+            const parsedContent = parseInlineMarkdownPDF(content);
+            result.push({
+              text: Array.isArray(parsedContent)
+                ? parsedContent
+                : [{ text: parsedContent }],
+              style: "h1",
+              margin: [0, 10, 0, 5],
+            });
+          }
+          // Bullet points
+          else if (/^\s*[-*]\s+/.test(line)) {
+            const content = line.replace(/^\s*[-*]\s+/, "");
+            const parsedContent = parseInlineMarkdownPDF(content);
+            result.push({
+              text: [
+                { text: "• ", bold: true },
+                ...(Array.isArray(parsedContent)
+                  ? parsedContent
+                  : [{ text: parsedContent }]),
+              ],
+              margin: [10, 2, 0, 2],
+            });
+          }
+          // Numbered list
+          else if (/^\s*\d+\.\s+/.test(line)) {
+            const content = line.replace(/^\s*\d+\.\s+/, "");
+            const parsedContent = parseInlineMarkdownPDF(content);
+            result.push({
+              text: Array.isArray(parsedContent)
+                ? parsedContent
+                : [{ text: parsedContent }],
+              margin: [10, 2, 0, 2],
+            });
+          }
+          // Regular paragraph
+          else {
+            // Parse inline markdown (bold, italic)
+            let content = parseInlineMarkdownPDF(line.trim());
+            result.push({
+              text: Array.isArray(content) ? content : [{ text: content }],
+              margin: [0, 2, 0, 2],
+            });
+          }
         }
 
-        images.forEach((img) => {
-          if (img.complete) {
-            loadedCount++;
-            if (loadedCount === images.length) {
-              setTimeout(() => {
-                printWindow.print();
-              }, 300);
-            }
-          } else {
-            img.onload = () => {
-              loadedCount++;
-              if (loadedCount === images.length) {
-                setTimeout(() => {
-                  printWindow.print();
-                }, 300);
-              }
-            };
-            img.onerror = () => {
-              // If image fails to load, count it anyway
-              loadedCount++;
-              if (loadedCount === images.length) {
-                setTimeout(() => {
-                  printWindow.print();
-                }, 300);
-              }
-            };
-          }
-        });
+        return result;
       };
 
-      // Wait for window to be ready
-      printWindow.onload = () => {
-        setTimeout(waitForImages, 200);
+      // Parse inline markdown (bold, italic)
+      const parseInlineMarkdownPDF = (text) => {
+        const parts = [];
+        let lastIndex = 0;
+
+        // Find bold text
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        let match;
+        let matches = [];
+
+        while ((match = boldRegex.exec(text)) !== null) {
+          matches.push({
+            index: match.index,
+            length: match[0].length,
+            content: match[1],
+            type: "bold",
+          });
+        }
+
+        // Find italic text (not part of bold)
+        const italicRegex = /(?<!\*)\*([^*]+?)\*(?!\*)/g;
+        while ((match = italicRegex.exec(text)) !== null) {
+          // Check if this is inside a bold match
+          const isInsideBold = matches.some(
+            (m) => m.index < match.index && match.index < m.index + m.length
+          );
+          if (!isInsideBold) {
+            matches.push({
+              index: match.index,
+              length: match[0].length,
+              content: match[1],
+              type: "italic",
+            });
+          }
+        }
+
+        // Sort matches by index
+        matches.sort((a, b) => a.index - b.index);
+
+        // Build result
+        for (const match of matches) {
+          // Add text before match
+          if (match.index > lastIndex) {
+            parts.push(text.substring(lastIndex, match.index));
+          }
+
+          // Add formatted match
+          if (match.type === "bold") {
+            parts.push({ text: match.content, bold: true });
+          } else if (match.type === "italic") {
+            parts.push({ text: match.content, italics: true });
+          }
+
+          lastIndex = match.index + match.length;
+        }
+
+        // Add remaining text
+        if (lastIndex < text.length) {
+          parts.push(text.substring(lastIndex));
+        }
+
+        return parts.length > 0 ? parts : [text];
       };
+
+      // Parse markdown content
+      const answerContent = parseMarkdownForPDF(answer);
+
+      const docDefinition = {
+        content: [
+          { text: t("answerTitle"), style: "header" },
+          { text: "", margin: [0, 5, 0, 5] },
+          { text: t("yourQuestion"), style: "subheader" },
+          { text: `"${question}"`, style: "question", margin: [0, 0, 0, 15] },
+          { text: t("selectedCardsTitle"), style: "subheader" },
+          {
+            table: {
+              widths: ["*", "*", "*"],
+              body: [cardRows],
+            },
+            layout: {
+              paddingLeft: () => 5,
+              paddingRight: () => 5,
+              paddingTop: () => 5,
+              paddingBottom: () => 5,
+            },
+            margin: [0, 5, 0, 20],
+          },
+          ...answerContent,
+        ],
+        styles: {
+          header: {
+            fontSize: 28,
+            bold: true,
+            color: "#d4a5ff",
+            margin: [0, 0, 0, 15],
+          },
+          subheader: {
+            fontSize: 18,
+            bold: true,
+            color: "#d4a5ff",
+            margin: [0, 10, 0, 8],
+          },
+          question: {
+            fontSize: 14,
+            italic: true,
+          },
+          cardName: {
+            fontSize: 13,
+            color: "#d4a5ff",
+            bold: true,
+          },
+          h1: {
+            fontSize: 20,
+            bold: true,
+            color: "#d4a5ff",
+          },
+          h2: {
+            fontSize: 16,
+            bold: true,
+            color: "#d4a5ff",
+          },
+          h3: {
+            fontSize: 14,
+            bold: true,
+            color: "#d4a5ff",
+          },
+          answer: {
+            fontSize: 12,
+            lineHeight: 1.6,
+            color: "#333",
+          },
+        },
+        defaultStyle: {
+          font: "Roboto",
+          fontSize: 11,
+        },
+        info: {
+          title: "Tarot Reading",
+          author: "Mystical Tarot Reader",
+          subject: "Tarot Reading Result",
+        },
+        pageMargins: [40, 60, 40, 60],
+        pageSize: "A4",
+      };
+
+      // Generate and download PDF
+      pdfMake
+        .createPdf(docDefinition)
+        .download(`tarot-reading-${new Date().toISOString().slice(0, 10)}.pdf`);
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       console.error("Failed to save PDF: ", err);
-      alert(
-        "Failed to generate PDF. Please try using your browser's print dialog."
-      );
+      alert("Failed to generate PDF. Please try again.");
     }
   };
 
@@ -850,6 +894,11 @@ function AnswerDisplay({
               <div className="save-error">
                 <span className="status-icon">⚠</span>
                 <span>{saveError}</span>
+              </div>
+            ) : isSaving ? (
+              <div className="save-loading">
+                <span className="status-icon">⏳</span>
+                <span>{t("saving")}...</span>
               </div>
             ) : (
               <div className="save-info">

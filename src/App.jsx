@@ -7,6 +7,8 @@ import AnswerDisplay from "./components/AnswerDisplay";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import StepNavigation from "./components/StepNavigation";
 import ConfirmationModal from "./components/ConfirmationModal";
+import PermissionDialog from "./components/PermissionDialog";
+import NotSignedInDialog from "./components/NotSignedInDialog";
 import CardVerification from "./components/CardVerification";
 import GoogleSignIn from "./components/GoogleSignIn";
 import UserInfoDialog from "./components/UserInfoDialog";
@@ -42,6 +44,8 @@ function App() {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [showNotSignedInDialog, setShowNotSignedInDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [currentPage, setCurrentPage] = useState("main"); // "main" or "saved-readings"
   const [isLoadedReading, setIsLoadedReading] = useState(false); // Track if current reading was loaded from saved readings
@@ -214,6 +218,12 @@ function App() {
   }, []);
 
   const handleContinueToCards = () => {
+    // If user is not signed in, show dialog
+    if (!isGoogleSignedIn) {
+      setShowNotSignedInDialog(true);
+      return;
+    }
+
     setStep(2);
     setSelectedCards([]); // Reset cards when moving to step 2
 
@@ -277,14 +287,81 @@ function App() {
       // Called from GoogleSignIn component
       setIsGoogleSignedIn(true);
       setGoogleUserInfo(userInfo);
+
+      // Check if permissions are sufficient
+      await checkPermissions();
     } else {
       // Called from main page sign-in button - need to call service
       try {
         const result = await googleDriveService.signIn();
         setIsGoogleSignedIn(true);
         setGoogleUserInfo(result);
+
+        // Check if permissions are sufficient
+        await checkPermissions();
       } catch (error) {
-        // Silent error handling
+        // If sign-in fails (e.g., user denies permissions or doesn't grant Drive access), show the dialog
+        console.error("Sign-in failed:", error);
+
+        // Check if the error is specifically about Drive permission not being granted
+        if (
+          error.message &&
+          error.message.includes("Drive permission not granted")
+        ) {
+          setShowPermissionDialog(true);
+        } else if (
+          error.message &&
+          error.message.includes("Popup was closed")
+        ) {
+          // User closed the popup, don't show dialog
+          console.log("Sign-in popup was closed by user");
+        } else {
+          // Other errors (general permission denial, etc.)
+          setShowPermissionDialog(true);
+        }
+      }
+    }
+  };
+
+  // Check if user has sufficient permissions
+  const checkPermissions = async () => {
+    try {
+      // Try to access user info (tests basic permission)
+      const userResponse = await fetch(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${googleDriveService.accessToken}`,
+          },
+        }
+      );
+
+      if (!userResponse.ok) {
+        throw new Error("Cannot access user info");
+      }
+
+      // Try to create or find the folder (this requires Drive permission)
+      await googleDriveService.createOrFindFolder();
+
+      // If all operations succeed, permissions are sufficient
+      setShowPermissionDialog(false);
+    } catch (error) {
+      // If any operation fails due to permissions, show the dialog
+      console.error("Permission check failed:", error);
+
+      // Check if it's a permission-related error
+      if (
+        error.message &&
+        (error.message.includes("403") ||
+          error.message.includes("insufficient"))
+      ) {
+        setShowPermissionDialog(true);
+      } else {
+        // For other errors, don't show the dialog
+        console.error(
+          "Error during permission check (non-permission related):",
+          error
+        );
       }
     }
   };
@@ -312,6 +389,32 @@ function App() {
   const handleCancelReset = () => {
     setShowConfirmModal(false);
     setPendingNavigation(null);
+  };
+
+  const handlePermissionDialogConfirm = () => {
+    setShowPermissionDialog(false);
+    handleGoogleSignOut();
+    // The user will need to sign in again from the sign-in button
+  };
+
+  const handlePermissionDialogCancel = () => {
+    setShowPermissionDialog(false);
+  };
+
+  const handleNotSignedInContinue = () => {
+    setShowNotSignedInDialog(false);
+    setStep(2);
+    setSelectedCards([]); // Reset cards when moving to step 2
+
+    // Scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleNotSignedInBack = () => {
+    setShowNotSignedInDialog(false);
   };
 
   // Navigation handlers
@@ -498,6 +601,18 @@ function App() {
         isOpen={showConfirmModal}
         onConfirm={handleConfirmReset}
         onCancel={handleCancelReset}
+      />
+
+      <PermissionDialog
+        isOpen={showPermissionDialog}
+        onConfirm={handlePermissionDialogConfirm}
+        onCancel={handlePermissionDialogCancel}
+      />
+
+      <NotSignedInDialog
+        isOpen={showNotSignedInDialog}
+        onContinue={handleNotSignedInContinue}
+        onSignIn={handleNotSignedInBack}
       />
 
       <div className="app">

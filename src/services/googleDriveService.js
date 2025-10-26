@@ -183,23 +183,48 @@ class GoogleDriveService {
         const client = google.accounts.oauth2.initTokenClient({
           client_id: this.clientId,
           scope:
-            "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
           callback: async (response) => {
             console.log("🔍 OAuth callback received:", response);
             try {
               this.accessToken = response.access_token;
+              const token = response.access_token;
 
               // Get user info
               const userResponse = await fetch(
                 "https://www.googleapis.com/oauth2/v2/userinfo",
                 {
                   headers: {
-                    Authorization: `Bearer ${this.accessToken}`,
+                    Authorization: `Bearer ${token}`,
                   },
                 }
               );
 
               const userInfo = await userResponse.json();
+
+              // Verify that the token has the required Drive permission
+              try {
+                // Try to list files in Drive to verify permission
+                const driveResponse = await fetch(
+                  "https://www.googleapis.com/drive/v3/files?pageSize=1",
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                );
+
+                if (!driveResponse.ok) {
+                  // If Drive API fails, user didn't grant Drive permission
+                  reject(new Error("Drive permission not granted"));
+                  return;
+                }
+              } catch (driveError) {
+                // If we can't access Drive, user didn't grant permission
+                reject(new Error("Drive permission not granted"));
+                return;
+              }
+
               this.userInfo = userInfo;
               this.isAuthenticated = true;
 
