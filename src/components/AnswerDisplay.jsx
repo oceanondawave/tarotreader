@@ -151,16 +151,21 @@ function AnswerDisplay({
       // Remove markdown from the answer before copying
       const plainText = removeMarkdown(answer);
 
+      // Add question at the top
+      const textToCopy = question
+        ? `${t("yourQuestion")}: ${question}\n\n${plainText}`
+        : plainText;
+
       // Check if Clipboard API is available
       if (navigator.clipboard && navigator.clipboard.writeText) {
         // Modern clipboard API
-        await navigator.clipboard.writeText(plainText);
+        await navigator.clipboard.writeText(textToCopy);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } else {
         // Fallback for older browsers (including old Safari)
         const textArea = document.createElement("textarea");
-        textArea.value = plainText;
+        textArea.value = textToCopy;
         textArea.style.position = "fixed";
         textArea.style.left = "-999999px";
         textArea.style.top = "-999999px";
@@ -351,16 +356,93 @@ function AnswerDisplay({
 
       // Parse inline markdown (bold, italic)
       const parseInlineMarkdownPDF = (text) => {
+        try {
+          // Test if lookbehind assertion is supported
+          try {
+            new RegExp("(?<!x)y");
+          } catch (e) {
+            // Lookbehind not supported, use fallback
+            return parseInlineMarkdownPDFFallback(text);
+          }
+
+          const parts = [];
+          let lastIndex = 0;
+
+          // Find bold text
+          const boldRegex = /\*\*(.*?)\*\*/g;
+          let match;
+          let matches = [];
+
+          while ((match = boldRegex.exec(text)) !== null) {
+            matches.push({
+              index: match.index,
+              length: match[0].length,
+              content: match[1],
+              type: "bold",
+            });
+          }
+
+          // Find italic text (not part of bold) - using lookbehind
+          const italicRegex = /(?<!\*)\*([^*]+?)\*(?!\*)/g;
+          while ((match = italicRegex.exec(text)) !== null) {
+            // Check if this is inside a bold match
+            const isInsideBold = matches.some(
+              (m) => m.index < match.index && match.index < m.index + m.length
+            );
+            if (!isInsideBold) {
+              matches.push({
+                index: match.index,
+                length: match[0].length,
+                content: match[1],
+                type: "italic",
+              });
+            }
+          }
+
+          // Sort matches by index
+          matches.sort((a, b) => a.index - b.index);
+
+          // Build result
+          for (const match of matches) {
+            // Add text before match
+            if (match.index > lastIndex) {
+              parts.push(text.substring(lastIndex, match.index));
+            }
+
+            // Add formatted match
+            if (match.type === "bold") {
+              parts.push({ text: match.content, bold: true });
+            } else if (match.type === "italic") {
+              parts.push({ text: match.content, italics: true });
+            }
+
+            lastIndex = match.index + match.length;
+          }
+
+          // Add remaining text
+          if (lastIndex < text.length) {
+            parts.push(text.substring(lastIndex));
+          }
+
+          return parts.length > 0 ? parts : [text];
+        } catch (error) {
+          // Fallback if anything fails
+          return parseInlineMarkdownPDFFallback(text);
+        }
+      };
+
+      // Fallback for browsers without lookbehind support
+      const parseInlineMarkdownPDFFallback = (text) => {
         const parts = [];
         let lastIndex = 0;
+        let boldMatches = [];
+        let italicMatches = [];
 
-        // Find bold text
+        // Find all bold matches first
         const boldRegex = /\*\*(.*?)\*\*/g;
         let match;
-        let matches = [];
-
         while ((match = boldRegex.exec(text)) !== null) {
-          matches.push({
+          boldMatches.push({
             index: match.index,
             length: match[0].length,
             content: match[1],
@@ -368,15 +450,17 @@ function AnswerDisplay({
           });
         }
 
-        // Find italic text (not part of bold)
-        const italicRegex = /(?<!\*)\*([^*]+?)\*(?!\*)/g;
+        // Find all italic matches (simple pattern)
+        const italicRegex = /\*([^*]+?)\*/g;
         while ((match = italicRegex.exec(text)) !== null) {
-          // Check if this is inside a bold match
-          const isInsideBold = matches.some(
+          // Check if this is NOT inside a bold match
+          const isInsideBold = boldMatches.some(
             (m) => m.index < match.index && match.index < m.index + m.length
           );
-          if (!isInsideBold) {
-            matches.push({
+          // Also check if previous char is * (bold marker)
+          const prevChar = text[match.index - 1];
+          if (!isInsideBold && prevChar !== "*") {
+            italicMatches.push({
               index: match.index,
               length: match[0].length,
               content: match[1],
@@ -385,11 +469,13 @@ function AnswerDisplay({
           }
         }
 
-        // Sort matches by index
-        matches.sort((a, b) => a.index - b.index);
+        // Combine and sort all matches
+        const allMatches = [...boldMatches, ...italicMatches].sort(
+          (a, b) => a.index - b.index
+        );
 
         // Build result
-        for (const match of matches) {
+        for (const match of allMatches) {
           // Add text before match
           if (match.index > lastIndex) {
             parts.push(text.substring(lastIndex, match.index));
