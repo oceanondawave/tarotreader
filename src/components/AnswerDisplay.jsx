@@ -582,14 +582,50 @@ function AnswerDisplay({
 
       // Generate and download PDF with error handling
       try {
-        pdfMake
-          .createPdf(docDefinition)
-          .download(
+        const pdfDoc = pdfMake.createPdf(docDefinition);
+
+        // For older Safari that doesn't properly trigger download
+        if (
+          navigator.userAgent.includes("Safari") &&
+          !navigator.userAgent.includes("Chrome")
+        ) {
+          // Use getBlob and create a download link
+          pdfDoc.getBlob((blob) => {
+            try {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = `tarot-reading-${new Date()
+                .toISOString()
+                .slice(0, 10)}.pdf`;
+              link.style.display = "none";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              // Clean up the URL after a short delay
+              setTimeout(() => URL.revokeObjectURL(url), 100);
+
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2000);
+            } catch (blobError) {
+              console.error("Error creating download link:", blobError);
+              // Fallback to regular download
+              pdfDoc.download(
+                `tarot-reading-${new Date().toISOString().slice(0, 10)}.pdf`
+              );
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2000);
+            }
+          });
+        } else {
+          // Modern browsers - use the standard download method
+          pdfDoc.download(
             `tarot-reading-${new Date().toISOString().slice(0, 10)}.pdf`
           );
-
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2000);
+        }
       } catch (pdfError) {
         console.error("pdfMake error:", pdfError);
         // Fallback: show alert with more details
