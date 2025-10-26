@@ -584,30 +584,59 @@ function AnswerDisplay({
       try {
         const pdfDoc = pdfMake.createPdf(docDefinition);
 
-        // For older Safari that doesn't properly trigger download
+        // For Safari that doesn't properly trigger download
         if (
           navigator.userAgent.includes("Safari") &&
           !navigator.userAgent.includes("Chrome")
         ) {
-          // Use getBlob and create a download link
+          // Use getBlob and create a download link with iframe trick for Safari
           pdfDoc.getBlob((blob) => {
             try {
+              // For Safari, we need to use window.open with the blob URL
               const url = URL.createObjectURL(blob);
+
+              // Try using an iframe to force download
+              const iframe = document.createElement("iframe");
+              iframe.style.display = "none";
+              iframe.src = url;
+              document.body.appendChild(iframe);
+
+              // Also try creating a download link as fallback
               const link = document.createElement("a");
               link.href = url;
               link.download = `tarot-reading-${new Date()
                 .toISOString()
                 .slice(0, 10)}.pdf`;
               link.style.display = "none";
+
+              // Don't use target="_blank" as it opens in new tab
+              link.setAttribute("download", link.download);
+
               document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
 
-              // Clean up the URL after a short delay
-              setTimeout(() => URL.revokeObjectURL(url), 100);
+              // Try clicking with mouse event
+              const clickEvent = new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+              });
+              link.dispatchEvent(clickEvent);
 
+              // Clean up after delay
+              setTimeout(() => {
+                document.body.removeChild(link);
+                document.body.removeChild(iframe);
+                URL.revokeObjectURL(url);
+              }, 2000);
+
+              // Show saved message
               setSaved(true);
               setTimeout(() => setSaved(false), 2000);
+
+              // Show alert for Safari users explaining the limitation
+              alert(
+                "📥 PDF is ready! If Safari shows you a blob URL, right-click on the page and select 'Save As' or 'Download' to save the PDF file. This is a Safari security limitation."
+              );
             } catch (blobError) {
               console.error("Error creating download link:", blobError);
               // Fallback to regular download
