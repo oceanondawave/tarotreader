@@ -662,6 +662,7 @@ function App() {
             transition={springTransition}
           >
             <motion.h1
+              className="title-text"
               animate={{
                 textShadow: [
                   "0 0 20px rgba(157, 78, 221, 0.3)",
@@ -677,6 +678,27 @@ function App() {
             >
               {t("title")}
             </motion.h1>
+
+            <motion.div
+              className="title-icon-container"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, ...springTransition }}
+            >
+              <img
+                src="/tarot_icon.png"
+                alt="Mystical Tarot Reader Logo - A mystical tarot card icon representing divination and spiritual guidance"
+                className="title-icon"
+                role="img"
+                aria-label="Mystical Tarot Reader Logo"
+                aria-describedby="tarot-icon-description"
+              />
+              {/* Hidden description for screen readers */}
+              <div id="tarot-icon-description" className="sr-only">
+                The mystical tarot icon represents the spiritual journey and
+                divination that awaits you in this tarot reading application.
+              </div>
+            </motion.div>
             <motion.p
               className="subtitle"
               initial={{ opacity: 0 }}
