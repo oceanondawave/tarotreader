@@ -52,7 +52,9 @@ const translations = {
     notCompleted: "chưa hoàn thành",
     privacyNotice: "Không thu thập dữ liệu nào từ câu hỏi của bạn",
     privacyNoticeDetail:
-      "Không thu thập dữ liệu nào từ câu hỏi của bạn. Chỉ bạn mới có thể xem các bài đọc đã lưu của mình, không ai khác có thể.",
+      "Tất cả các lượt bói hiện được lưu trong Google Drive CỦA BẠN. Không có dữ liệu cá nhân nào được chia sẻ với bất kỳ ai khác.",
+    puterSigninCaution:
+      "Lưu ý: Bạn sẽ cần đăng nhập tài khoản Puter.com để xem kết quả bói bài.",
     revealReading: "Xem Kết Quả",
 
     // Google Drive Integration
@@ -120,11 +122,11 @@ const translations = {
     signInPrompt: "Đăng nhập để tự động lưu kết quả vào Google Drive",
     privacyInfo: "Chỉ lưu vào Google Sheets của bạn, hoàn toàn riêng tư",
     googleVerificationWarning:
-      "⚠️ Nếu Google hiển thị cảnh báo 'Ứng dụng chưa được xác minh', hãy chọn 'Nâng cao' và 'Đi tới...' để bỏ qua cảnh báo. Hãy nhớ cấp tất cả các quyền cần thiết (chỉ các quyền để tạo sheet lưu dữ liệu, tác giả không yêu cầu gì khác).",
+      "Nếu Google hiển thị cảnh báo 'Ứng dụng chưa được xác minh', hãy chọn 'Nâng cao' và 'Đi tới...' để bỏ qua cảnh báo. Hãy nhớ cấp tất cả các quyền cần thiết (chỉ các quyền để tạo sheet lưu dữ liệu, tác giả không yêu cầu gì khác).",
     dataLoadTroubleshoot:
-      "💡 Nếu không tải được dữ liệu hoặc có lỗi xảy ra, hãy thử đăng xuất và đăng nhập lại.",
+      "Nếu không tải được dữ liệu hoặc có lỗi xảy ra, hãy thử đăng xuất và đăng nhập lại.",
     driveCaution:
-      "⚠️ Cảnh báo: Xóa hoặc chỉnh sửa sheet có thể gây hỏng dữ liệu. Vui lòng không thực hiện.",
+      "Cảnh báo: Xóa hoặc chỉnh sửa sheet có thể gây hỏng dữ liệu. Vui lòng không thực hiện.",
     modalTitle: "Lượt Bói Của Bạn",
     modalSubtitle: "Bạn đã chọn xong lá bài. Hãy đặt câu hỏi của bạn.",
     selectedCardsTitle: "Các Lá Bài Đã Chọn",
@@ -146,9 +148,9 @@ const translations = {
     playFacts: "Phát thông tin",
     pauseFacts: "Tạm dừng thông tin",
     aiCaution:
-      "⚠️ Lưu ý: Kết quả được tạo bởi AI, có thể không chính xác, xin hãy tham khảo",
+      "Lưu ý: Kết quả được tạo bởi AI, có thể không chính xác, xin hãy tham khảo",
     serviceCaution:
-      "⚠️ Tác giả sử dụng dịch vụ miễn phí, có thể gián đoạn nếu lượt sử dụng cao, mong mọi người thông cảm",
+      "Tác giả sử dụng dịch vụ miễn phí, có thể gián đoạn nếu lượt sử dụng cao, mong mọi người thông cảm",
 
     // Answer
     answerTitle: "Kết Quả Bói Của Bạn",
@@ -157,9 +159,9 @@ const translations = {
     // Errors
     errorSelectCards: "Vui lòng chọn đúng 3 lá bài",
     errorEnterQuestion: "Vui lòng nhập câu hỏi của bạn",
-    errorApiKey:
-      "Chưa cấu hình OpenRouter API key. Vui lòng thêm VITE_OPENROUTER_API_KEY vào file .env của bạn.",
+    errorApiKey: "",
     errorReading: "Không thể bói. Vui lòng thử lại.",
+    errorPuterAuth: "Không thể xác thực với Puter.com. Vui lòng đăng nhập để tiếp tục.",
 
     // Language
     language: "Ngôn ngữ",
@@ -226,7 +228,9 @@ const translations = {
     notCompleted: "not completed",
     privacyNotice: "No data is collected from your question",
     privacyNoticeDetail:
-      "No data is collected from your question. Only you can view your own saved readings, no one else can.",
+      "All readings are now saved in YOUR Google Drive. No personal data is shared with anyone else.",
+    puterSigninCaution:
+      "Note: You will need to sign in to Puter.com to view the reading results.",
     revealReading: "Reveal Reading",
 
     // Google Drive Integration
@@ -259,7 +263,7 @@ const translations = {
     goToSignIn: "Go to Sign In",
     savedReadings: "Saved Readings",
     driveCaution:
-      "⚠️ Caution: Removing or editing the sheet would cause data corruption. Do not do it.",
+      "Caution: Removing or editing the sheet would cause data corruption. Do not do it.",
     searchPlaceholder: "Search by question, date, or card name...",
     search: "Search",
     clear: "Clear",
@@ -297,9 +301,9 @@ const translations = {
     signInPrompt: "Sign in to automatically save your results to Google Drive",
     privacyInfo: "Save only to your Google Sheets, completely private",
     googleVerificationWarning:
-      "⚠️ If Google shows 'This app isn't verified' warning, click 'Advanced' and 'Go to...' to skip the warning. Remember to grant all required permissions (only permissions to create sheet to store data, author does not request anything else).",
+      "If Google shows 'This app isn't verified' warning, click 'Advanced' and 'Go to...' to skip the warning. Remember to grant all required permissions (only permissions to create sheet to store data, author does not request anything else).",
     dataLoadTroubleshoot:
-      "💡 If you cannot load data or any error occurs, try to sign out and sign in again.",
+      "If you cannot load data or any error occurs, try to sign out and sign in again.",
 
     // Modal
     modalTitle: "Your Reading",
@@ -323,9 +327,9 @@ const translations = {
     playFacts: "Play Facts",
     pauseFacts: "Pause Facts",
     aiCaution:
-      "⚠️ Caution: Results are generated by AI, may not be accurate, please take as reference",
+      "Caution: Results are generated by AI, may not be accurate, please take as reference",
     serviceCaution:
-      "⚠️ Author uses free service, could be down if usage is high, please understand",
+      "Author uses free service, could be down if usage is high, please understand",
 
     // Answer
     answerTitle: "Your Reading",
@@ -334,9 +338,9 @@ const translations = {
     // Errors
     errorSelectCards: "Please select exactly 3 cards",
     errorEnterQuestion: "Please enter your question",
-    errorApiKey:
-      "OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.",
-    errorReading: "Failed to get reading. Please try again.",
+    errorApiKey: "",
+    errorReading: "Unable to read. Please try again.",
+    errorPuterAuth: "Cannot authorize with Puter.com. Please sign in to continue.",
 
     // Language
     language: "Language",

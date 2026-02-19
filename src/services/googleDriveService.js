@@ -110,9 +110,6 @@ class GoogleDriveService {
   // Initialize Google API client
   async initialize() {
     try {
-      console.log("🔍 Initializing Google Drive Service...");
-      console.log("🔍 Client ID:", this.clientId);
-
       if (!this.clientId) {
         throw new Error(
           "Google Client ID not found. Please set VITE_GOOGLE_CLIENT_ID in your .env file"
@@ -121,10 +118,8 @@ class GoogleDriveService {
 
       // Wait for Google Identity Services library to load
       if (!window.google) {
-        console.log("⏳ Waiting for Google Identity Services to load...");
         await this.waitForGoogle();
       }
-      console.log("✅ Google Identity Services loaded");
       return true;
     } catch (error) {
       console.error("Failed to initialize Google API:", error);
@@ -305,11 +300,17 @@ class GoogleDriveService {
 
       // If folder creation is already in progress, wait for it
       if (this.creatingFolder) {
-        // Wait for the creation to complete
-        while (this.creatingFolder) {
+        // Wait for the creation to complete, timeout after 5s
+        let attempts = 0;
+        while (this.creatingFolder && attempts < 50) {
           await new Promise((resolve) => setTimeout(resolve, 100));
+          attempts++;
         }
-        return this.folderId;
+        if (this.creatingFolder) {
+          console.warn("Timed out waiting for creatingFolder lock");
+        } else {
+          return this.folderId;
+        }
       }
 
       this.creatingFolder = true;
@@ -381,11 +382,17 @@ class GoogleDriveService {
 
       // If spreadsheet creation is already in progress, wait for it
       if (this.creatingSpreadsheet) {
-        // Wait for the creation to complete
-        while (this.creatingSpreadsheet) {
+        // Wait for the creation to complete, timeout after 5s
+        let attempts = 0;
+        while (this.creatingSpreadsheet && attempts < 50) {
           await new Promise((resolve) => setTimeout(resolve, 100));
+          attempts++;
         }
-        return this.spreadsheetId;
+        if (this.creatingSpreadsheet) {
+          console.warn("Timed out waiting for creatingSpreadsheet lock");
+        } else {
+          return this.spreadsheetId;
+        }
       }
 
       this.creatingSpreadsheet = true;
@@ -506,11 +513,18 @@ class GoogleDriveService {
     try {
       // If saving is already in progress, wait for it
       if (this.savingReading) {
-        // Wait for the save to complete
-        while (this.savingReading) {
+        // Wait for the save to complete, but timeout after 10 seconds
+        let attempts = 0;
+        while (this.savingReading && attempts < 100) {
           await new Promise((resolve) => setTimeout(resolve, 100));
+          attempts++;
         }
-        return;
+        if (this.savingReading) {
+          console.warn("Timed out waiting for savingReading lock");
+          // Proceed anyway, assume lock is stale
+        } else {
+          return;
+        }
       }
 
       this.savingReading = true;
@@ -674,8 +688,6 @@ class GoogleDriveService {
           parseCard(row[5]),
           parseCard(row[6]),
         ].filter((card) => card.name && card.name.trim() !== ""); // Only include cards with non-empty names
-
-        console.log("Parsed cards for reading:", cards);
 
         return {
           id: row[0] || index + 1, // Use the ID from the sheet, fallback to index
@@ -999,8 +1011,7 @@ class GoogleDriveService {
           );
         } else {
           throw new Error(
-            `Failed to delete row: ${
-              errorData.error?.message || "Unknown error"
+            `Failed to delete row: ${errorData.error?.message || "Unknown error"
             }`
           );
         }

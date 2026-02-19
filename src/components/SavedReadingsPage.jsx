@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import {
+  ArrowLeft, Trash2, Search, X, Calendar, Globe, HelpCircle,
+  Layers, BookOpen, Eye
+} from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import googleDriveService from "../services/googleDriveService";
 
@@ -405,54 +409,56 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
       animate={{ opacity: 1, y: 0 }}
       transition={springTransition}
     >
-      {/* Header */}
-      <div className="page-header">
-        <button
-          className="back-button"
-          onClick={onBack}
-          aria-label={t("backToQuestion")}
-        >
-          ← {t("backToQuestion")}
-        </button>
-        <h1>{t("savedReadings")}</h1>
-        <button
-          className="cleanup-button"
-          onClick={handleCleanupMalformedRows}
-          disabled={deletingReadingId !== null} // Disable during deletion
-          title={t("cleanupDescription")}
-          aria-label={t("cleanupButton")}
-        >
-          🧹 {t("cleanupButton")}
-        </button>
-      </div>
+      <div className="sticky-header-group">
+        {/* Header */}
+        <div className="page-header">
+          <button
+            className="back-button"
+            onClick={onBack}
+            aria-label={t("backToQuestion")}
+          >
+            <ArrowLeft size={20} /> <span className="button-text">{t("backToQuestion")}</span>
+          </button>
+          <h1>{t("savedReadings")}</h1>
+          <button
+            className="cleanup-button"
+            onClick={handleCleanupMalformedRows}
+            disabled={deletingReadingId !== null} // Disable during deletion
+            title={t("cleanupDescription")}
+            aria-label={t("cleanupButton")}
+          >
+            <Trash2 size={18} /> <span className="button-text">{t("cleanupButton")}</span>
+          </button>
+        </div>
 
-      {/* Search Bar */}
-      {readings.length > 0 && (
-        <motion.div
-          className="search-container"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, ...springTransition }}
-        >
-          <input
-            type="text"
-            className="search-input"
-            placeholder={t("searchPlaceholder")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label={t("searchPlaceholder")}
-          />
-          {searchQuery && (
-            <button
-              className="clear-search-button"
-              onClick={() => setSearchQuery("")}
-              aria-label={t("clear")}
-            >
-              ✕
-            </button>
-          )}
-        </motion.div>
-      )}
+        {/* Search Bar */}
+        {readings.length > 0 && (
+          <motion.div
+            className="search-container"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, ...springTransition }}
+          >
+            <input
+              type="text"
+              className="search-input"
+              placeholder={t("searchPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label={t("searchPlaceholder")}
+            />
+            {searchQuery && (
+              <button
+                className="clear-search-button"
+                onClick={() => setSearchQuery("")}
+                aria-label={t("clear")}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </motion.div>
+        )}
+      </div>
 
       {/* Content */}
       <div className="page-content">
@@ -503,24 +509,24 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
                 >
                   <div className="reading-header">
                     <div className="reading-date">
-                      <span className="date-icon">📅</span>
+                      <Calendar className="date-icon" size={16} />
                       <span className="time">
                         {reading.date} - {reading.time}
                       </span>
                     </div>
                     <div className="reading-language">
-                      {reading.language === "vi" ? "🇻🇳" : "🇺🇸"}{" "}
+                      <Globe size={16} style={{ marginRight: "4px" }} />
                       {reading.language === "vi" ? "Tiếng Việt" : "English"}
                     </div>
                   </div>
 
                   <div className="reading-question">
-                    <span className="question-icon">❓</span>
+                    <HelpCircle className="question-icon" size={18} />
                     <span>{reading.question}</span>
                   </div>
 
                   <div className="reading-cards">
-                    <span className="cards-icon">🃏</span>
+                    <Layers className="cards-icon" size={18} />
                     <span>
                       {reading.cards
                         .map((card) => card.name)
@@ -530,7 +536,7 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
                   </div>
 
                   <div className="reading-preview">
-                    <span className="preview-icon">📖</span>
+                    <BookOpen className="preview-icon" size={18} />
                     {(() => {
                       const preview = parseMarkdown(
                         reading.answer.substring(0, 100)

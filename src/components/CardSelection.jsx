@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { LayoutGrid, Target, RefreshCw, ArrowLeft, Send, X, Star, AlertTriangle } from "lucide-react";
 import { tarotCards } from "../data/tarotCards";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -315,59 +316,37 @@ function CardSelection({
           {t("chooseCards", { count: maxCards })}
         </motion.h2>
 
+        <motion.p
+          className="caution-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <AlertTriangle size={16} className="icon-inline warning-icon" /> {t("puterSigninCaution")}
+        </motion.p>
+
         <motion.div
           className="selection-menu"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...springTransition }}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.5rem",
-            maxWidth: "500px",
-            margin: "2rem auto",
-          }}
         >
           <motion.button
-            className="selection-button"
+            className="selection-button manual"
             onClick={() => setShowManualSelectModal(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            style={{
-              padding: "1.5rem 2rem",
-              background: "linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%)",
-              color: "white",
-              border: "2px solid var(--accent-primary)",
-              borderRadius: "15px",
-              fontSize: "1.2rem",
-              fontWeight: "600",
-              fontFamily: "Playfair Display, serif",
-              boxShadow: "0 4px 20px var(--shadow)",
-              cursor: "pointer",
-            }}
           >
-            🃏 {t("manualSelection")}
+            <LayoutGrid size={24} /> {t("manualSelection")}
           </motion.button>
 
           <motion.button
-            className="selection-button"
+            className="selection-button quick"
             onClick={() => setShowQuickSelectModal(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            style={{
-              padding: "1.5rem 2rem",
-              background: "var(--bg-card)",
-              color: "var(--text-primary)",
-              border: "2px solid var(--accent-primary)",
-              borderRadius: "15px",
-              fontSize: "1.2rem",
-              fontWeight: "600",
-              fontFamily: "Playfair Display, serif",
-              boxShadow: "0 4px 20px var(--shadow)",
-              cursor: "pointer",
-            }}
           >
-            🎯 {t("quickSelection")}
+            <Target size={24} /> {t("quickSelection")}
           </motion.button>
 
           {selectedCards.length > 0 && (
@@ -400,19 +379,15 @@ function CardSelection({
 
           <motion.div
             className="menu-navigation"
-            style={{
-              display: "flex",
-              gap: "1rem",
-              marginTop: "1rem",
-            }}
           >
             <motion.button
               className="back-button"
               onClick={onBack}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
-              ← {t("backToQuestion")}
+              <ArrowLeft size={18} /> {t("backToQuestion")}
             </motion.button>
 
             <motion.button
@@ -423,10 +398,12 @@ function CardSelection({
                 scale: selectedCards.length === maxCards ? 1.05 : 1,
               }}
               whileTap={{ scale: selectedCards.length === maxCards ? 0.95 : 1 }}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
-              {t("revealReading")}
+              <Send size={18} /> {t("revealReading")}
             </motion.button>
           </motion.div>
+
         </motion.div>
       </div>
     );
@@ -463,7 +440,7 @@ function CardSelection({
               overflowY: "auto",
             }}
           >
-            <h3>🎯 {t("quickSelectPlaceholder")}</h3>
+            <h3><Target className="icon-inline" size={24} /> {t("quickSelectPlaceholder")}</h3>
             <p>
               {t("quickSelectDescription", { count: shuffledCards.length })}
             </p>
@@ -620,7 +597,7 @@ function CardSelection({
                             e.currentTarget.style.background = "var(--bg-card)";
                           }}
                         >
-                          ❌ {t("removeCardLabel")}{" "}
+                          <X className="icon-inline" size={14} /> {t("removeCardLabel")}{" "}
                           {t("positionLabel", { position, name: card.name })}
                         </button>
                       );
@@ -654,20 +631,20 @@ function CardSelection({
                 style={{
                   opacity:
                     !quickSelectInput ||
-                    quickSelectInput.trim() === "" ||
-                    quickSelectInput === "" ||
-                    isNaN(parseInt(quickSelectInput)) ||
-                    parseInt(quickSelectInput) < 1 ||
-                    parseInt(quickSelectInput) > shuffledCards.length
+                      quickSelectInput.trim() === "" ||
+                      quickSelectInput === "" ||
+                      isNaN(parseInt(quickSelectInput)) ||
+                      parseInt(quickSelectInput) < 1 ||
+                      parseInt(quickSelectInput) > shuffledCards.length
                       ? 0.5
                       : 1,
                   cursor:
                     !quickSelectInput ||
-                    quickSelectInput.trim() === "" ||
-                    quickSelectInput === "" ||
-                    isNaN(parseInt(quickSelectInput)) ||
-                    parseInt(quickSelectInput) < 1 ||
-                    parseInt(quickSelectInput) > shuffledCards.length
+                      quickSelectInput.trim() === "" ||
+                      quickSelectInput === "" ||
+                      isNaN(parseInt(quickSelectInput)) ||
+                      parseInt(quickSelectInput) < 1 ||
+                      parseInt(quickSelectInput) > shuffledCards.length
                       ? "not-allowed"
                       : "pointer",
                 }}
@@ -709,76 +686,50 @@ function CardSelection({
         >
           <motion.div
             ref={modalRef}
-            className="confirmation-modal"
+            className="confirmation-modal manual-selection-modal"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3 }}
-            style={{
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              display: "flex",
-              flexDirection: "column",
-            }}
           >
-            <div style={{ flexShrink: 0, marginBottom: "1rem" }}>
-              <h3>🃏 {t("manualSelection")}</h3>
+            <div className="manual-header">
+              <h3><Target className="icon-inline" size={24} /> {t("manualSelection")}</h3>
               <p>
-                {t("manualSelectionDescription", {
-                  count: maxCards,
-                })}
-              </p>
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  color: "var(--text-secondary)",
-                  marginTop: "0.5rem",
-                }}
-              >
                 {t("manualSelectionInstructions")}
               </p>
-              <motion.button
-                onClick={handleShuffle}
-                disabled={isShuffling}
-                whileHover={{ scale: isShuffling ? 1 : 1.05 }}
-                whileTap={{ scale: isShuffling ? 1 : 0.95 }}
-                style={{
-                  marginTop: "1rem",
-                  padding: "0.75rem 1.5rem",
-                  background: "var(--bg-card)",
-                  color: "var(--text-primary)",
-                  border: "2px solid var(--accent-primary)",
-                  borderRadius: "12px",
-                  fontSize: "1rem",
-                  fontFamily: "Playfair Display, serif",
-                  fontWeight: "600",
-                  cursor: isShuffling ? "not-allowed" : "pointer",
-                  opacity: isShuffling ? 0.7 : 1,
-                }}
-                aria-label={isShuffling ? t("shuffling") : t("shuffleButton")}
-              >
-                {isShuffling ? `🔄 ${t("shuffling")}` : t("shuffleButton")}
-              </motion.button>
+              <div className="manual-actions">
+                <motion.button
+                  onClick={handleShuffle}
+                  disabled={isShuffling}
+                  whileHover={{ scale: isShuffling ? 1 : 1.05 }}
+                  whileTap={{ scale: isShuffling ? 1 : 0.95 }}
+                  className="shuffle-button-small"
+                  aria-label={isShuffling ? t("shuffling") : t("shuffleButton")}
+                >
+                  {isShuffling ? (
+                    <>
+                      <RefreshCw className="icon-inline spin" size={18} /> {t("shuffling")}
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="icon-inline" size={18} /> {t("shuffleButton")}
+                    </>
+                  )}
+                </motion.button>
+
+                <button
+                  className="done-button-small"
+                  onClick={handleManualDone}
+                  disabled={selectedCards.length !== maxCards}
+                  aria-label={t("doneButton")}
+                >
+                  {t("doneButton")}
+                </button>
+              </div>
             </div>
 
-            <div
-              style={{
-                overflowY: "auto",
-                flex: 1,
-                marginBottom: "1rem",
-                paddingRight: "0.5rem",
-                padding: "1rem",
-              }}
-            >
-              <div
-                className="cards-grid"
-                style={{
-                  gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
-                  gap: "1rem",
-                  maxWidth: "100%",
-                  padding: "0.75rem",
-                }}
-              >
+            <div className="manual-grid-container">
+              <div className="manual-cards-grid">
                 {shuffledCards.map((card, index) => {
                   const isSelected = selectedCards.find(
                     (c) => c.id === card.id
@@ -790,9 +741,8 @@ function CardSelection({
                   return (
                     <motion.div
                       key={card.id}
-                      className={`card ${isSelected ? "selected" : ""} ${
-                        isFlipped ? "flipped" : ""
-                      } ${isDisabled ? "disabled" : ""}`}
+                      className={`card ${isSelected ? "selected" : ""} ${isFlipped ? "flipped" : ""
+                        } ${isDisabled ? "disabled" : ""}`}
                       onClick={() => handleCardClick(card)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -870,7 +820,7 @@ function CardSelection({
                             fontSize: "2rem",
                           }}
                         >
-                          <div className="card-back-symbol">✦</div>
+                          <div className="card-back-symbol"><Star size={24} fill="white" /></div>
                         </div>
 
                         {/* Card Front */}
@@ -900,6 +850,8 @@ function CardSelection({
                             src={card.image}
                             alt={card.name}
                             crossOrigin="anonymous"
+                            loading="lazy"
+                            decoding="async"
                             style={{
                               width: "100%",
                               height: "72%",
@@ -951,16 +903,6 @@ function CardSelection({
                   );
                 })}
               </div>
-            </div>
-
-            <div className="modal-buttons" style={{ flexShrink: 0 }}>
-              <button
-                className="cancel-button"
-                onClick={handleManualDone}
-                aria-label={t("doneButton")}
-              >
-                {t("doneButton")}
-              </button>
             </div>
           </motion.div>
         </div>

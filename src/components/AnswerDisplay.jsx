@@ -1,7 +1,11 @@
-import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../contexts/LanguageContext";
 import googleDriveService from "../services/googleDriveService";
+import {
+  Download, Calendar, Check, AlertTriangle, Cloud,
+  Coffee, FileText, Copy, Share2, Loader, ArrowLeft
+} from "lucide-react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
@@ -249,13 +253,13 @@ function AnswerDisplay({
           stack: [
             ...(imageDataUrl
               ? [
-                  {
-                    image: imageDataUrl,
-                    width: 80,
-                    height: 120,
-                    margin: [0, 5, 0, 5],
-                  },
-                ]
+                {
+                  image: imageDataUrl,
+                  width: 80,
+                  height: 120,
+                  margin: [0, 5, 0, 5],
+                },
+              ]
               : []),
             {
               text: card.name,
@@ -582,6 +586,21 @@ function AnswerDisplay({
 
       // Generate and download PDF with error handling
       try {
+        // Ensure pdfMake.vfs is set up if not already
+        if (window.pdfMake && window.pdfMake.vfs) {
+          pdfMake.vfs = window.pdfMake.vfs;
+        }
+
+        // Set default font
+        pdfMake.fonts = {
+          Roboto: {
+            normal: "Roboto-Regular.ttf",
+            bold: "Roboto-Medium.ttf",
+            italics: "Roboto-Italic.ttf",
+            bolditalics: "Roboto-MediumItalic.ttf",
+          },
+        };
+
         const pdfDoc = pdfMake.createPdf(docDefinition);
 
         // For Safari that doesn't properly trigger download
@@ -815,9 +834,8 @@ function AnswerDisplay({
     });
 
     text = text.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, (match, alt, src) => {
-      return `___IMAGE_START___${
-        alt || ""
-      }___IMAGE_URL___${src}___IMAGE_END___`;
+      return `___IMAGE_START___${alt || ""
+        }___IMAGE_URL___${src}___IMAGE_END___`;
     });
 
     // Process the text through multiple passes to handle nested markdown
@@ -828,34 +846,34 @@ function AnswerDisplay({
     // Use different patterns based on browser support
     const patterns = supportsLookbehind
       ? [
-          {
-            regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
-            type: "link",
-          },
-          {
-            regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
-            type: "image",
-          },
-          { regex: /\*\*(.*?)\*\*/g, type: "bold" },
-          { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
-          { regex: /~~(.*?)~~/g, type: "strikethrough" },
-          { regex: /`(.*?)`/g, type: "code" },
-        ]
+        {
+          regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
+          type: "link",
+        },
+        {
+          regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
+          type: "image",
+        },
+        { regex: /\*\*(.*?)\*\*/g, type: "bold" },
+        { regex: /(?<!\*)\*([^*]+?)\*(?!\*)/g, type: "italic" },
+        { regex: /~~(.*?)~~/g, type: "strikethrough" },
+        { regex: /`(.*?)`/g, type: "code" },
+      ]
       : [
-          {
-            regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
-            type: "link",
-          },
-          {
-            regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
-            type: "image",
-          },
-          { regex: /\*\*(.*?)\*\*/g, type: "bold" },
-          // For older browsers, use a simpler italic pattern that avoids lookbehind
-          { regex: /\b\*([^*]+?)\*\b/g, type: "italic" },
-          { regex: /~~(.*?)~~/g, type: "strikethrough" },
-          { regex: /`(.*?)`/g, type: "code" },
-        ];
+        {
+          regex: /___LINK_START___(.*?)___LINK_URL___(.*?)___LINK_END___/g,
+          type: "link",
+        },
+        {
+          regex: /___IMAGE_START___(.*?)___IMAGE_URL___(.*?)___IMAGE_END___/g,
+          type: "image",
+        },
+        { regex: /\*\*(.*?)\*\*/g, type: "bold" },
+        // For older browsers, use a simpler italic pattern that avoids lookbehind
+        { regex: /\b\*([^*]+?)\*\b/g, type: "italic" },
+        { regex: /~~(.*?)~~/g, type: "strikethrough" },
+        { regex: /`(.*?)`/g, type: "code" },
+      ];
 
     // Wrap parsing in try-catch for older browser compatibility
     try {
@@ -1012,7 +1030,7 @@ function AnswerDisplay({
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springTransition, delay: 0.25 }}
         >
-          📅 {t("savedOn")} {savedReadingDate} {savedReadingTime}
+          <Calendar className="icon-inline" size={16} /> {t("savedOn")} {savedReadingDate} {savedReadingTime}
         </motion.div>
       )}
 
@@ -1084,24 +1102,65 @@ function AnswerDisplay({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, ...springTransition }}
           >
+            <AnimatePresence mode="wait">
+              {autoSaved && (
+                <motion.div
+                  key="saved"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                >
+                  <Check className="status-icon" size={20} />
+                </motion.div>
+              )}
+              {saveError && (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  title={saveError}
+                >
+                  <AlertTriangle className="status-icon error" size={20} />
+                </motion.div>
+              )}
+              {isSaving && (
+                <motion.div
+                  key="saving"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                >
+                  <div className="loading-spinner-small"></div>
+                </motion.div>
+              )}
+              {!autoSaved && !saveError && !isSaving && (
+                <motion.div
+                  key="autosaved"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                >
+                  <Cloud className="status-icon" size={20} />
+                </motion.div>
+              )}
+            </AnimatePresence>
             {autoSaved ? (
               <div className="save-success">
-                <span className="status-icon">✓</span>
                 <span>{t("readingSaved")}</span>
               </div>
             ) : saveError ? (
               <div className="save-error">
-                <span className="status-icon">⚠</span>
                 <span>{saveError}</span>
               </div>
             ) : isSaving ? (
               <div className="save-loading">
-                <span className="status-icon">⏳</span>
+                <Loader className="status-icon spin" size={16} />
                 <span>{t("saving")}...</span>
               </div>
             ) : (
               <div className="save-info">
-                <span className="status-icon">☁️</span>
+                <Cloud className="status-icon" size={16} />
                 <span>{t("autoSaveEnabled")}</span>
               </div>
             )}
@@ -1122,15 +1181,15 @@ function AnswerDisplay({
               transition={{ delay: 1.1, ...springTransition }}
               aria-label={t("backToSavedReadings")}
             >
-              ← {t("backToSavedReadings")}
+              <ArrowLeft className="icon-inline" size={18} /> {t("backToSavedReadings")}
             </motion.button>
           )}
 
-          <motion.button
-            className="donation-button"
-            onClick={() => {
-              window.open("https://me.momo.vn/oceanondawave");
-            }}
+          <motion.a
+            href="https://me.momo.vn/oceanondawave"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="action-button secondary"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, y: 10 }}
@@ -1138,11 +1197,11 @@ function AnswerDisplay({
             transition={{ delay: 1.2, ...springTransition }}
             aria-label={t("buyCoffee")}
           >
-            ☕ {t("buyCoffee")}
-          </motion.button>
+            <Coffee className="icon-inline" size={18} /> {t("buyCoffee")}
+          </motion.a>
 
           <motion.button
-            className="screenshot-button"
+            className={`action-button secondary ${saved ? "success" : ""}`}
             onClick={handleSaveScreenshot}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -1151,11 +1210,19 @@ function AnswerDisplay({
             transition={{ delay: 1.25, ...springTransition }}
             aria-label={saved ? t("saved") : t("savePDF")}
           >
-            {saved ? `✓ ${t("saved")}` : `📄 ${t("savePDF")}`}
+            {saved ? (
+              <>
+                <Check className="icon-inline" size={18} /> {t("saved")}
+              </>
+            ) : (
+              <>
+                <FileText className="icon-inline" size={18} /> {t("savePDF")}
+              </>
+            )}
           </motion.button>
 
           <motion.button
-            className="copy-button"
+            className={`action-button secondary ${copied ? "success" : ""}`}
             onClick={handleCopyResult}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -1164,7 +1231,15 @@ function AnswerDisplay({
             transition={{ delay: 1.3, ...springTransition }}
             aria-label={copied ? t("copied") : t("copyResult")}
           >
-            {copied ? `✓ ${t("copied")}` : `📋 ${t("copyResult")}`}
+            {copied ? (
+              <>
+                <Check className="icon-inline" size={18} /> {t("copied")}
+              </>
+            ) : (
+              <>
+                <Copy className="icon-inline" size={18} /> {t("copyResult")}
+              </>
+            )}
           </motion.button>
         </div>
       </motion.div>

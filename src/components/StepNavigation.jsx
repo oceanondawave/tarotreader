@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useLanguage } from "../contexts/LanguageContext";
+import { Check } from "lucide-react";
 
 const springTransition = {
   type: "spring",
@@ -34,9 +35,8 @@ function StepNavigation({ currentStep, onStepClick, hasQuestion }) {
           return (
             <div key={step.number} className="step-item-wrapper">
               <motion.div
-                className={`step-item ${isActive ? "active" : ""} ${
-                  isCompleted ? "completed" : ""
-                }`}
+                className={`step-item ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""
+                  }`}
                 onClick={() => isClickable && onStepClick(step.number)}
                 onKeyDown={(e) => {
                   if ((e.key === "Enter" || e.key === " ") && isClickable) {
@@ -46,13 +46,12 @@ function StepNavigation({ currentStep, onStepClick, hasQuestion }) {
                 }}
                 role="button"
                 tabIndex={isClickable ? 0 : -1}
-                aria-label={`${step.label}, ${
-                  isActive
-                    ? t("current")
-                    : isCompleted
+                aria-label={`${step.label}, ${isActive
+                  ? t("current")
+                  : isCompleted
                     ? t("completed")
                     : t("notCompleted")
-                }`}
+                  }`}
                 aria-current={isActive ? "step" : undefined}
                 whileHover={isClickable ? { scale: 1.05 } : {}}
                 whileTap={isClickable ? { scale: 0.95 } : {}}
@@ -66,8 +65,8 @@ function StepNavigation({ currentStep, onStepClick, hasQuestion }) {
                     backgroundColor: isActive
                       ? "var(--accent-primary)"
                       : isCompleted
-                      ? "var(--accent-secondary)"
-                      : "var(--bg-card)",
+                        ? "var(--accent-secondary)"
+                        : "var(--bg-card)",
                   }}
                   transition={springTransition}
                 >
@@ -77,7 +76,7 @@ function StepNavigation({ currentStep, onStepClick, hasQuestion }) {
                       animate={{ scale: 1, rotate: 0 }}
                       transition={springTransition}
                     >
-                      ✓
+                      <Check strokeWidth={3} size={16} />
                     </motion.span>
                   ) : (
                     step.number

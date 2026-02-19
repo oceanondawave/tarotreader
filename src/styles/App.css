@@ -52,11 +52,9 @@
 }
 
 body {
-  background: linear-gradient(
-    135deg,
-    var(--bg-gradient-start) 0%,
-    var(--bg-gradient-end) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--bg-gradient-start) 0%,
+      var(--bg-gradient-end) 100%);
   background-attachment: fixed;
   color: var(--text-primary);
   font-family: "Noto Sans", sans-serif;
@@ -118,16 +116,12 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
-      circle at 20% 50%,
+  background: radial-gradient(circle at 20% 50%,
       rgba(157, 78, 221, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
+      transparent 50%),
+    radial-gradient(circle at 80% 80%,
       rgba(199, 125, 255, 0.1) 0%,
-      transparent 50%
-    );
+      transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -185,25 +179,24 @@ h3 {
 
 .title-text {
   font-size: 3.5rem;
-  background: linear-gradient(
-    135deg,
-    var(--accent-secondary) 0%,
-    var(--accent-glow) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-secondary) 0%,
+      var(--accent-glow) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.1em;
   margin: 0;
+  text-shadow: 0 0 25px rgba(157, 78, 221, 0.4);
 }
+
+/* @keyframes title-glow removed to prevent confusion about increasing values */
 
 h1 {
   font-size: 3.5rem;
-  background: linear-gradient(
-    135deg,
-    var(--accent-secondary) 0%,
-    var(--accent-glow) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-secondary) 0%,
+      var(--accent-glow) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -223,10 +216,71 @@ h1 {
   margin: 3rem 0;
 }
 
-.card-selection h2 {
-  font-size: 2rem;
-  color: var(--accent-glow);
-  margin-bottom: 2rem;
+
+.caution-message {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  /* Allow wrapping on small screens */
+  padding: 0 1rem;
+}
+
+.selection-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 500px;
+  margin: 2rem auto;
+  width: 100%;
+}
+
+.selection-button {
+  padding: 1.5rem 2rem;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: "Playfair Display", serif;
+  box-shadow: 0 4px 20px var(--shadow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.selection-button.manual {
+  background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+  color: white;
+  border: 2px solid var(--accent-primary);
+}
+
+.selection-button.quick {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 2px solid var(--accent-primary);
+}
+
+@media (max-width: 480px) {
+  .selection-button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .caution-message {
+    font-size: 0.8rem;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
 
 .shuffle-button {
@@ -295,11 +349,9 @@ h1 {
 
 .card {
   aspect-ratio: 2/3;
-  background: linear-gradient(
-    135deg,
-    var(--bg-card) 0%,
-    rgba(157, 78, 221, 0.1) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--bg-card) 0%,
+      rgba(157, 78, 221, 0.1) 100%);
   border: 2px solid var(--border-color);
   border-radius: 12px;
   cursor: pointer;
@@ -323,11 +375,9 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    rgba(157, 78, 221, 0.2) 100%
-  );
+  background: linear-gradient(135deg,
+      transparent 0%,
+      rgba(157, 78, 221, 0.2) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -343,11 +393,9 @@ h1 {
 }
 
 .card.selected {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   border-color: var(--accent-glow);
   box-shadow: 0 0 30px var(--shadow);
   transform: translateY(-8px);
@@ -469,11 +517,9 @@ select option:checked {
 }
 
 .submit-button {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   color: var(--text-primary);
   border: none;
   padding: 1rem 3rem;
@@ -495,12 +541,10 @@ select option:checked {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
   transition: left 0.5s ease;
 }
 
@@ -541,22 +585,22 @@ select option:checked {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 30% 30%,
-    var(--accent-glow),
-    var(--accent-primary)
-  );
+  background: radial-gradient(circle at 30% 30%,
+      var(--accent-glow),
+      var(--accent-primary));
   box-shadow: 0 0 60px var(--shadow), 0 0 100px rgba(157, 78, 221, 0.2),
     inset 0 0 40px rgba(255, 255, 255, 0.1);
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     transform: scale(1);
     opacity: 0.8;
   }
+
   50% {
     transform: scale(1.1);
     opacity: 1;
@@ -623,6 +667,12 @@ select option:checked {
   margin-bottom: 2rem;
 }
 
+.card-selection h2 {
+  font-size: 2rem;
+  color: var(--accent-glow);
+  margin-bottom: 2rem;
+}
+
 .cards-drawn {
   display: flex;
   justify-content: center;
@@ -632,11 +682,9 @@ select option:checked {
 }
 
 .drawn-card {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   padding: 0.8rem 1.5rem;
   border-radius: 12px;
   font-family: "Playfair Display", serif;
@@ -759,11 +807,9 @@ select option:checked {
 }
 
 .copy-button {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -771,6 +817,11 @@ select option:checked {
   font-family: "Playfair Display", serif;
   font-weight: 600;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
@@ -813,6 +864,11 @@ select option:checked {
   font-family: "Playfair Display", serif;
   font-weight: 600;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
@@ -836,6 +892,11 @@ select option:checked {
   font-family: "Playfair Display", serif;
   font-weight: 600;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
@@ -859,6 +920,11 @@ select option:checked {
   font-family: "Playfair Display", serif;
   font-weight: 600;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1018,7 +1084,7 @@ select option:checked {
   color: var(--text-primary);
   resize: vertical;
   min-height: 150px;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 1.5rem;
 }
 
@@ -1041,6 +1107,12 @@ select option:checked {
   font-size: 1.2rem;
   font-family: "Playfair Display", serif;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
+  margin: 0 auto 1.5rem;
   cursor: pointer;
   border-radius: 50px;
   transition: all 0.3s ease;
@@ -1161,11 +1233,9 @@ select option:checked {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
 }
 
 /* Tablet */
@@ -1271,11 +1341,9 @@ select option:checked {
 }
 
 .reveal-button {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   color: #ffffff;
   border: 2px solid rgba(255, 255, 255, 0.2);
   padding: 0.8rem 2.5rem;
@@ -1335,62 +1403,58 @@ select option:checked {
   position: absolute;
   width: 3px;
   height: 3px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(157, 78, 221, 0.8) 50%,
-    transparent 100%
-  );
+  background: radial-gradient(circle,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(157, 78, 221, 0.8) 50%,
+      transparent 100%);
   border-radius: 50%;
   opacity: 0.6;
   box-shadow: 0 0 4px rgba(157, 78, 221, 0.5);
 }
 
 .particle.star {
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(200, 150, 255, 0.9) 40%,
-    rgba(157, 78, 221, 0.6) 70%,
-    transparent 100%
-  );
+  background: radial-gradient(circle,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(200, 150, 255, 0.9) 40%,
+      rgba(157, 78, 221, 0.6) 70%,
+      transparent 100%);
 }
 
 @media (prefers-color-scheme: light) {
   .particle {
-    background: radial-gradient(
-      circle,
-      rgba(157, 78, 221, 1) 0%,
-      rgba(157, 78, 221, 0.6) 50%,
-      transparent 100%
-    );
+    background: radial-gradient(circle,
+        rgba(157, 78, 221, 1) 0%,
+        rgba(157, 78, 221, 0.6) 50%,
+        transparent 100%);
     box-shadow: 0 0 4px rgba(157, 78, 221, 0.4);
   }
 
   .particle.star {
-    background: radial-gradient(
-      circle,
-      rgba(124, 58, 237, 1) 0%,
-      rgba(157, 78, 221, 0.8) 40%,
-      rgba(157, 78, 221, 0.4) 70%,
-      transparent 100%
-    );
+    background: radial-gradient(circle,
+        rgba(124, 58, 237, 1) 0%,
+        rgba(157, 78, 221, 0.8) 40%,
+        rgba(157, 78, 221, 0.4) 70%,
+        transparent 100%);
   }
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0) translateX(0);
     opacity: 0;
   }
+
   10% {
     opacity: 0.3;
   }
+
   50% {
     transform: translateY(-100vh) translateX(50px);
     opacity: 0.3;
   }
+
   90% {
     opacity: 0.3;
   }
@@ -1476,11 +1540,9 @@ select option:checked {
 }
 
 .confirmation-modal {
-  background: linear-gradient(
-    135deg,
-    rgba(26, 17, 42, 0.98) 0%,
-    rgba(15, 10, 25, 0.98) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(26, 17, 42, 0.98) 0%,
+      rgba(15, 10, 25, 0.98) 100%);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 2rem;
@@ -1492,11 +1554,9 @@ select option:checked {
 
 @media (prefers-color-scheme: light) {
   .confirmation-modal {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(245, 245, 247, 0.98) 100%
-    );
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(245, 245, 247, 0.98) 100%);
   }
 }
 
@@ -1549,11 +1609,9 @@ select option:checked {
 }
 
 .confirm-button {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   color: white;
 }
 
@@ -2024,6 +2082,7 @@ select option:checked {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -2443,7 +2502,7 @@ select option:checked {
   flex-shrink: 0;
 }
 
-.user-info-dialog .dialog-actions-top > * {
+.user-info-dialog .dialog-actions-top>* {
   flex-shrink: 0;
   width: auto;
 }
@@ -2620,7 +2679,7 @@ select option:checked {
   flex-shrink: 0;
 }
 
-.user-info-dialog .file-link > div {
+.user-info-dialog .file-link>div {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -2883,12 +2942,24 @@ select option:checked {
 
 .page-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 2rem;
+  padding: 1rem 2rem;
   border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-subtle);
-  position: relative;
+  background: var(--bg-primary);
+  /* position: sticky; - Moved to .sticky-header-group */
+  /* top: 0; */
+  /* z-index: 100; */
+}
+
+/* New wrapper for sticky header + search */
+.sticky-header-group {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .page-header h1 {
@@ -2933,6 +3004,11 @@ select option:checked {
   transition: all 0.2s;
   font-family: "Playfair Display", serif;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
 }
 
 .cleanup-button:hover:not(:disabled) {
@@ -2948,13 +3024,74 @@ select option:checked {
   transform: none;
 }
 
+@media (max-width: 768px) {
+
+  /* Increase specificity to override base styles */
+  .saved-readings-page .page-header {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "title title"
+      "back cleanup";
+    padding: 1rem;
+    gap: 0.75rem;
+    height: auto;
+  }
+
+  .saved-readings-page .page-header h1 {
+    grid-area: title;
+    position: static;
+    transform: none;
+    width: 100%;
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    left: auto;
+  }
+
+  .saved-readings-page .back-button,
+  .saved-readings-page .cleanup-button {
+    grid-area: auto;
+    /* Reset grid area here, handled by specific rules below if needed, but actually we can share common styles first */
+    width: 100%;
+    margin: 0;
+    justify-content: center;
+    height: 44px;
+    /* Force explicit height */
+    padding: 0 1rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+  }
+
+  .saved-readings-page .back-button {
+    grid-area: back;
+  }
+
+  .saved-readings-page .cleanup-button {
+    grid-area: cleanup;
+  }
+
+  /* Adjust search container sticky position - No longer needed with wrapper */
+  .saved-readings-page .search-container {
+    top: auto;
+    padding: 0.75rem 1rem;
+  }
+}
+
 .search-container {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 2rem;
-  background: var(--bg-subtle);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 1rem 3rem;
+  /* Match header padding */
+  background: var(--bg-primary);
+  /* Ensure solid background matching header */
+  /* Ensure solid background matching header */
+  /* border-bottom: 1px solid var(--border-subtle); - Moved to wrapper */
+  /* position: sticky; - Moved to wrapper */
+  /* top: 76px; */
+  /* z-index: 90; */
 }
 
 .search-input {
@@ -3229,6 +3366,58 @@ select option:checked {
   gap: 1rem;
 }
 
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  text-decoration: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+  border-color: var(--accent-primary);
+}
+
+.action-button.primary {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+}
+
+.action-button.primary:hover {
+  background: var(--accent-glow);
+}
+
+.action-button.secondary {
+  background: transparent;
+  border: 2px solid var(--border-color);
+}
+
+.action-button.secondary:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-glow);
+  background: rgba(157, 78, 221, 0.1);
+}
+
+.action-button.success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+}
+
 .reading-item {
   background: var(--bg-card);
   border: 2px solid var(--border-color);
@@ -3243,6 +3432,7 @@ select option:checked {
   box-shadow: 0 4px 20px var(--shadow);
   transform: translateY(-2px);
 }
+
 
 .reading-header {
   display: flex;
@@ -3406,23 +3596,45 @@ select option:checked {
 /* Responsive styles for Saved Readings Page */
 @media (max-width: 768px) {
   .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem;
+    /* Keep row layout for compact sticky header */
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Hide button text on mobile to save space */
+  .button-text {
+    display: none;
   }
 
   .page-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     position: static;
     transform: none;
     left: auto;
+    flex: 1;
+    /* Let title take available space */
+    text-align: center;
   }
 
   .cleanup-button {
-    width: 100%;
+    width: auto;
     margin-left: 0;
-    margin-top: 0.5rem;
+    margin-top: 0;
+    padding: 0.5rem;
+    /* Smaller padding for icon-only */
+  }
+
+  .back-button {
+    padding: 0.5rem;
+  }
+
+  /* Adjust search container for mobile */
+  .search-container {
+    padding: 0.75rem 1rem;
+    top: 60px;
+    /* Adjusted for compact mobile header */
   }
 
   .page-content {
@@ -3483,6 +3695,8 @@ select option:checked {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
   padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
   color: white;
@@ -3825,11 +4039,9 @@ select option:checked {
   overflow: hidden;
   box-shadow: 0 4px 15px var(--shadow);
   border: 2px solid var(--accent-primary);
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
 }
 
 .modal-card-image-container.image-error::before {
@@ -3855,11 +4067,9 @@ select option:checked {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(157, 78, 221, 0.2) 0%,
-    rgba(199, 125, 255, 0.2) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(157, 78, 221, 0.2) 0%,
+      rgba(199, 125, 255, 0.2) 100%);
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -3934,11 +4144,9 @@ select option:checked {
 }
 
 .modal-confirm-button {
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary) 0%,
-    var(--accent-secondary) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 100%);
   color: #ffffff;
   border: none;
   padding: 1rem 2.5rem;
@@ -4030,11 +4238,6 @@ select option:checked {
     gap: 1rem;
   }
 
-  .modal-card-image-container {
-    max-width: 200px;
-    margin: 0 auto;
-  }
-
   .card-front img {
     width: 100% !important;
     height: 55% !important;
@@ -4047,5 +4250,148 @@ select option:checked {
 
   .card-front div[style*="font-size"] {
     font-size: 0.55rem !important;
+  }
+}
+
+/* Manual Selection Modal Specifics (Global) */
+.manual-selection-modal {
+  max-width: 90vw;
+  width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  /* Clear padding to let children handle it */
+  overflow: hidden;
+  /* Prevent cards from jumping out */
+}
+
+.manual-header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  flex-shrink: 0;
+}
+
+.manual-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.manual-grid-container {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  /* Crucial for flex scrolling */
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.manual-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+  max-width: 100%;
+  padding: 0.5rem;
+  perspective: 1000px;
+}
+
+.shuffle-button-small,
+.done-button-small {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shuffle-button-small {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 2px solid var(--accent-primary);
+}
+
+.done-button-small {
+  background: var(--accent-primary) !important;
+  color: white !important;
+  border: 2px solid var(--accent-primary) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.shuffle-button-small:disabled,
+.done-button-small:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+/* Responsive adjustments for Manual Modal */
+@media (max-width: 480px) {
+  .manual-header {
+    padding: 1rem 1rem 0.5rem 1rem;
+  }
+
+  .manual-actions {
+    gap: 0.75rem;
+  }
+
+  .manual-grid-container {
+    padding: 0 1rem 1rem 1rem;
+  }
+
+  .manual-cards-grid {
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  }
+
+  .shuffle-button-small,
+  .done-button-small {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    flex: 1;
+    /* Make them equal width on mobile */
+    justify-content: center;
+  }
+}
+
+/* Card Selection Navigation Buttons */
+.menu-navigation {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .menu-navigation {
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .back-button,
+  .reveal-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    width: 100%;
+    /* Full width on mobile for easier tapping */
+    justify-content: center;
+  }
+
+  .back-button {
+    order: 2;
+    /* Put back button below reveal button on mobile if stacking */
+  }
+
+  .reveal-button {
+    order: 1;
   }
 }

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { Sparkles, Play, Pause } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { tarotFacts } from "../data/tarotFacts";
 
@@ -87,23 +88,14 @@ function ThinkingAnimation() {
             width: "80px",
             height: "80px",
             borderRadius: "50%",
-            background:
-              "radial-gradient(circle at 30% 30%, #e0aaff, #9d4edd, #7c3aed)",
-            boxShadow: `
-              0 0 60px rgba(157, 78, 221, 0.6),
-              0 0 100px rgba(224, 170, 255, 0.4),
-              0 0 140px rgba(124, 58, 237, 0.3),
-              inset 0 0 40px rgba(255, 255, 255, 0.1)
-            `,
+            background: "linear-gradient(135deg, #e0aaff, #9d4edd)",
+            boxShadow: "0 0 40px rgba(157, 78, 221, 0.4)", // Reduced static shadow
             position: "relative",
+            willChange: "transform", // Optimize rendering
           }}
           animate={{
-            scale: [1, 1.08, 1],
-            boxShadow: [
-              "0 0 60px rgba(157, 78, 221, 0.6), 0 0 100px rgba(224, 170, 255, 0.4), 0 0 140px rgba(124, 58, 237, 0.3)",
-              "0 0 90px rgba(157, 78, 221, 0.8), 0 0 140px rgba(224, 170, 255, 0.6), 0 0 180px rgba(124, 58, 237, 0.5)",
-              "0 0 60px rgba(157, 78, 221, 0.6), 0 0 100px rgba(224, 170, 255, 0.4), 0 0 140px rgba(124, 58, 237, 0.3)",
-            ],
+            scale: [1, 1.05, 1],
+            // Removed complex box-shadow animation
           }}
           transition={{
             duration: 3,
@@ -112,7 +104,7 @@ function ThinkingAnimation() {
           }}
           aria-hidden="true"
         >
-          {/* Inner highlight */}
+          {/* Inner highlight - Static now */}
           <div
             style={{
               position: "absolute",
@@ -121,9 +113,8 @@ function ThinkingAnimation() {
               width: "40%",
               height: "40%",
               borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent)",
-              filter: "blur(8px)",
+              background: "rgba(255, 255, 255, 0.3)",
+              filter: "blur(5px)", // Static blur is okay
             }}
           />
         </motion.div>
@@ -177,7 +168,15 @@ function ThinkingAnimation() {
             e.target.style.boxShadow = "none";
           }}
         >
-          {isPlaying ? "⏸️ " + t("pauseFacts") : "▶️ " + t("playFacts")}
+          {isPlaying ? (
+            <>
+              <Pause className="icon-inline" size={16} /> {t("pauseFacts")}
+            </>
+          ) : (
+            <>
+              <Play className="icon-inline" size={16} /> {t("playFacts")}
+            </>
+          )}
         </button>
 
         {/* Rotating facts */}
@@ -199,7 +198,7 @@ function ThinkingAnimation() {
                 damping: 30,
               }}
             >
-              💫 {facts[currentFactIndex]}
+              <Sparkles className="icon-inline" size={18} /> {facts[currentFactIndex]}
             </motion.div>
           </AnimatePresence>
         </div>

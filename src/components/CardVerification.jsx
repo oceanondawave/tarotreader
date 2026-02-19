@@ -66,12 +66,30 @@ function CardVerification() {
         <p>
           By @oceanondawave / Powered by{" "}
           <a
+            href="https://puter.com"
+            target="_blank"
+            rel="noreferrer"
+            className="author-link"
+          >
+            Puter.com
+          </a>
+          ,{" "}
+          <a
             href="https://cursor.sh"
             target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-link"
+            rel="noreferrer"
+            className="author-link"
           >
             Cursor
+          </a>{" "}
+          &{" "}
+          <a
+            href="https://antigravity.google/"
+            target="_blank"
+            rel="noreferrer"
+            className="author-link"
+          >
+            Antigravity
           </a>
         </p>
       </div>

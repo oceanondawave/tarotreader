@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Save, Lock, LogIn, AlertTriangle, CreditCard } from "lucide-react";
 import QuestionStep from "./components/QuestionStep";
 import CardSelection from "./components/CardSelection";
 import ThinkingAnimation from "./components/ThinkingAnimation";
@@ -14,7 +15,7 @@ import GoogleSignIn from "./components/GoogleSignIn";
 import UserInfoDialog from "./components/UserInfoDialog";
 import SavedReadingsPage from "./components/SavedReadingsPage";
 import { useLanguage } from "./contexts/LanguageContext";
-import { getTarotReading } from "./services/chutesService";
+import { getTarotReading } from "./services/puterGeminiService";
 import googleDriveService from "./services/googleDriveService";
 import "./styles/App.css";
 
@@ -99,8 +100,8 @@ function App() {
       const checkDriveCreation = () => {
         setIsCreatingDriveFiles(
           googleDriveService.creatingFolder ||
-            googleDriveService.creatingSpreadsheet ||
-            googleDriveService.savingReading
+          googleDriveService.creatingSpreadsheet ||
+          googleDriveService.savingReading
         );
       };
 
@@ -207,11 +208,11 @@ function App() {
 
   // Memoize particles to prevent regeneration on re-renders
   const particles = useMemo(() => {
-    return [...Array(50)].map((_, i) => ({
+    return [...Array(30)].map((_, i) => ({
       id: i,
       startX: Math.random() * 100,
       startY: Math.random() * 100,
-      twinkleDuration: 5 + Math.random() * 10,
+      twinkleDuration: 3 + Math.random() * 5, // Faster, simpler duration
       size: 2 + Math.random() * 3,
       delay: Math.random() * 5,
     }));
@@ -497,16 +498,24 @@ function App() {
 
     getTarotReading(selectedCards, question, language)
       .then((reading) => {
+        if (!reading) {
+          throw new Error("Received empty reading from service");
+        }
         setAnswer(reading);
         setTimeout(() => {
           setStep(4);
         }, 2000);
       })
       .catch((err) => {
-        setError(err.message || t("errorReading"));
-        // Clear selected cards and flip state by resetting selection
-        setSelectedCards([]);
-        setStep(2);
+        let errorMessage = err.message || t("errorReading");
+        if (errorMessage === "ERROR_PUTER_AUTH") {
+          errorMessage = t("errorPuterAuth");
+        }
+        setError(errorMessage);
+        // Do NOT reset selected cards or step, allowing user to try again
+        setStep(2); // Ensure we stay on the reading step (or go back to card selection view but keep cards?)
+        // Actually, step 2 is card selection. If we failed at step 3 (Thinking), we should probably go back to step 2 
+        // but KEEP the selected cards so they don't have to re-select.
       });
   };
 
@@ -589,7 +598,7 @@ function App() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                🃏 {t("viewAllCards")}
+                <CreditCard className="icon-inline" size={18} /> {t("viewAllCards")}
               </motion.a>
             </div>
           </div>
@@ -635,15 +644,13 @@ function App() {
                 top: `${particle.startY}%`,
                 width: `${particle.size}px`,
                 height: `${particle.size}px`,
+                willChange: "transform, opacity", // Performance optimization
+                background: "rgba(255, 255, 255, 0.8)", // Static color
+                boxShadow: "0 0 4px rgba(157, 78, 221, 0.5)", // Static shadow
               }}
               animate={{
-                opacity: [0.2, 1, 0.2],
-                scale: [0.8, 1.2, 0.8],
-                boxShadow: [
-                  "0 0 2px rgba(157, 78, 221, 0.3)",
-                  "0 0 8px rgba(157, 78, 221, 0.8), 0 0 12px rgba(157, 78, 221, 0.5)",
-                  "0 0 2px rgba(157, 78, 221, 0.3)",
-                ],
+                opacity: [0.3, 1, 0.3],
+                scale: [0.9, 1.1, 0.9],
               }}
               transition={{
                 duration: particle.twinkleDuration,
@@ -661,23 +668,9 @@ function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={springTransition}
           >
-            <motion.h1
-              className="title-text"
-              animate={{
-                textShadow: [
-                  "0 0 20px rgba(157, 78, 221, 0.3)",
-                  "0 0 30px rgba(157, 78, 221, 0.5)",
-                  "0 0 20px rgba(157, 78, 221, 0.3)",
-                ],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
+            <h1 className="title-text">
               {t("title")}
-            </motion.h1>
+            </h1>
 
             <motion.div
               className="title-icon-container"
@@ -687,7 +680,7 @@ function App() {
             >
               <img
                 src="/tarot_icon.png"
-                alt="Mystical Tarot Reader Logo - A mystical tarot card icon representing divination and spiritual guidance"
+                alt="Mystical Tarot Reader Logo"
                 className="title-icon"
                 role="img"
                 aria-label="Mystical Tarot Reader Logo"
@@ -748,9 +741,9 @@ function App() {
                 ) : (
                   <div className="sign-in-prompt">
                     <div className="sign-in-content">
-                      <h3>💾 {t("saveToDrive")}</h3>
+                      <h3><Save className="icon-inline" size={20} /> {t("saveToDrive")}</h3>
                       <p>{t("signInPrompt")}</p>
-                      <p className="sign-in-privacy">🔒 {t("privacyInfo")}</p>
+                      <p className="sign-in-privacy"><Lock className="icon-inline" size={14} /> {t("privacyInfo")}</p>
                       <div className="google-warning">
                         <p>{t("googleVerificationWarning")}</p>
                       </div>
@@ -759,7 +752,7 @@ function App() {
                         onClick={() => handleGoogleSignIn()}
                         aria-label={t("signInWithGoogle")}
                       >
-                        <span className="google-icon">🔐</span>
+                        <LogIn className="google-icon" size={18} />
                         {t("signInWithGoogle")}
                       </button>
                     </div>
@@ -787,7 +780,7 @@ function App() {
                     padding: "0 1rem",
                   }}
                 >
-                  {t("serviceCaution")}
+                  <AlertTriangle className="icon-inline warning-icon" size={14} /> {t("serviceCaution")}
                 </motion.p>
               </motion.div>
             )}
@@ -839,12 +832,30 @@ function App() {
           <p>
             By @oceanondawave / Powered by{" "}
             <a
+              href="https://puter.com"
+              target="_blank"
+              rel="noreferrer"
+              className="author-link"
+            >
+              Puter.com
+            </a>
+            ,{" "}
+            <a
               href="https://cursor.sh"
               target="_blank"
-              rel="noopener noreferrer"
-              className="cursor-link"
+              rel="noreferrer"
+              className="author-link"
             >
               Cursor
+            </a>{" "}
+            &{" "}
+            <a
+              href="https://antigravity.google/"
+              target="_blank"
+              rel="noreferrer"
+              className="author-link"
+            >
+              Antigravity
             </a>
           </p>
         </motion.div>

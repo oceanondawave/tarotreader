@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "../contexts/LanguageContext";
+import { Link, Check, LogOut, Lightbulb } from "lucide-react";
 import googleDriveService from "../services/googleDriveService";
 
 const GoogleSignIn = ({
@@ -139,7 +140,7 @@ const GoogleSignIn = ({
               <div className="loading-spinner"></div>
             ) : (
               <>
-                <span className="google-icon">🔗</span>
+                <Link className="google-icon" size={18} />
                 {t("signInWithGoogle")}
               </>
             )}
@@ -177,7 +178,7 @@ const GoogleSignIn = ({
             <span className="user-name-compact">
               {userInfo?.name || "User"}
             </span>
-            <span className="status-indicator">✅</span>
+            <Check className="status-indicator icon-inline" size={16} />
           </button>
 
           <button
@@ -186,7 +187,7 @@ const GoogleSignIn = ({
             disabled={isLoading || isCreatingDriveFiles}
             aria-label={t("signOut")}
           >
-            <span className="google-icon">🚪</span>
+            <LogOut className="google-icon" size={18} />
             {t("signOut")}
           </button>
         </div>

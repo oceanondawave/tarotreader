@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../contexts/LanguageContext";
+import { User, Check, Book, BarChart2, X } from "lucide-react";
 import googleDriveService from "../services/googleDriveService";
 
 const springTransition = {
@@ -110,13 +111,13 @@ function UserInfoDialog({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="dialog-header">
-                <h2>👤 {t("userInfo")}</h2>
+                <h2><User className="icon-inline" size={24} /> {t("userInfo")}</h2>
                 <button
                   className="close-button"
                   onClick={onClose}
                   aria-label={t("close")}
                 >
-                  ×
+                  <X size={24} />
                 </button>
               </div>
 
@@ -140,7 +141,7 @@ function UserInfoDialog({
                     <p>{userInfo?.email || ""}</p>
                   </div>
                   <div className="drive-status">
-                    <span className="status-indicator">✅</span>
+                    <Check className="status-indicator icon-inline" size={16} />
                     <span>{t("driveConnected")}</span>
                   </div>
                 </div>
@@ -150,7 +151,7 @@ function UserInfoDialog({
                     className="view-readings-button"
                     onClick={handleViewSavedReadings}
                   >
-                    <span className="google-icon">📚</span>
+                    <Book className="google-icon" size={18} />
                     {t("viewSavedReadings")}
                   </button>
                 </div>
@@ -160,7 +161,7 @@ function UserInfoDialog({
                   <div className="drive-caution">{t("driveCaution")}</div>
                   <div className="file-links">
                     <div className="file-link">
-                      <span className="link-icon">📊</span>
+                      <BarChart2 className="link-icon" size={18} />
                       <div>
                         <strong>{t("spreadsheetCreated")}:</strong>
                         <a

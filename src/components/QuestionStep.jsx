@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
@@ -48,7 +49,7 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.25 }}
       >
-        🔒 {t("privacyNoticeDetail")}
+        <Lock className="icon-inline" size={14} /> {t("privacyNoticeDetail")}
       </motion.p>
 
       <form onSubmit={handleSubmit}>
@@ -57,6 +58,7 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
           placeholder={t("questionPlaceholder")}
           value={question}
           onChange={(e) => onQuestionChange(e.target.value)}
+          aria-label={t("yourQuestion")}
           rows={4}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
