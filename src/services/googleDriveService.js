@@ -733,7 +733,7 @@ class GoogleDriveService {
       return Math.max(0, rows.length - 1); // Subtract header row
     } catch (error) {
       console.error("Failed to get readings count:", error);
-      return 0;
+      throw error;
     }
   }
 
@@ -824,11 +824,8 @@ class GoogleDriveService {
       return readings;
     } catch (error) {
       console.error("Failed to get all readings:", error);
-      // If sheet was deleted, throw the error so the app can sign out the user
-      if (error.message.includes("Sheet not found")) {
-        throw error;
-      }
-      return [];
+      // Let the caller handle all errors (so the UI can show a proper error message instead of falsely claiming 0 readings)
+      throw error;
     }
   }
 
