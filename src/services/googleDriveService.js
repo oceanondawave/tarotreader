@@ -182,13 +182,18 @@ class GoogleDriveService {
               },
               error_callback: (error) => {
                 console.warn("Silent refresh oauth error (will not sign out):", error);
-                // Don't sign out - Safari commonly blocks silent OAuth popups
-                reject(new Error("Token refresh error - please sign in again"));
+
+                // If it's a popup_closed, popup_blocked, or user_logged_out error, we need interactive sign-in
+                if (error.type === 'popup_closed' || error.type === 'popup_blocked' || error.message?.includes('blocked')) {
+                  reject(new Error("INTERACTIVE_SIGN_IN_REQUIRED"));
+                } else {
+                  reject(new Error("Token refresh error - please sign in again"));
+                }
               }
             });
 
             // Request token silently without a popup
-            client.requestAccessToken({ prompt: '' });
+            client.requestAccessToken({ prompt: 'none' });
           } catch (initError) {
             console.warn("Error setting up silent refresh (will not sign out):", initError);
             // Don't sign out - just propagate the error
@@ -650,6 +655,27 @@ class GoogleDriveService {
 
       this.savingReading = true;
 
+      // Check if user is authenticated first
+      if (!this.isAuthenticated || !this.accessToken) {
+        throw new Error("User not authenticated");
+      }
+
+      // Check token and fallback to interactive sign-in if needed
+      try {
+        await this.refreshTokenIfNeeded();
+      } catch (refreshErr) {
+        if (refreshErr.message === "INTERACTIVE_SIGN_IN_REQUIRED") {
+          console.log("Interactive sign-in required before saving. Prompting user...");
+          try {
+            await this.signIn();
+          } catch (signInErr) {
+            throw new Error("Authentication required to save reading");
+          }
+        } else {
+          throw refreshErr;
+        }
+      }
+
       if (!this.spreadsheetId) {
         await this.createOrFindSpreadsheet();
       }
@@ -715,6 +741,26 @@ class GoogleDriveService {
   // Get user's saved readings count
   async getReadingsCount() {
     try {
+      if (!this.isAuthenticated || !this.accessToken) {
+        return 0; // Don't throw for count, just return 0
+      }
+
+      // Check token and fallback to interactive sign-in if needed
+      try {
+        await this.refreshTokenIfNeeded();
+      } catch (refreshErr) {
+        if (refreshErr.message === "INTERACTIVE_SIGN_IN_REQUIRED") {
+          console.log("Interactive sign-in required for count. Prompting user...");
+          try {
+            await this.signIn();
+          } catch (signInErr) {
+            return 0;
+          }
+        } else {
+          throw refreshErr;
+        }
+      }
+
       if (!this.spreadsheetId) {
         await this.createOrFindSpreadsheet();
       }
@@ -762,7 +808,21 @@ class GoogleDriveService {
       }
 
       // Check if token is still valid
-      await this.refreshTokenIfNeeded();
+      try {
+        await this.refreshTokenIfNeeded();
+      } catch (refreshErr) {
+        if (refreshErr.message === "INTERACTIVE_SIGN_IN_REQUIRED") {
+          console.log("Interactive sign-in required. Prompting user...");
+          try {
+            await this.signIn();
+          } catch (signInErr) {
+            console.warn("User cancelled interactive sign-in:", signInErr.message);
+            throw new Error("Authentication required to get readings");
+          }
+        } else {
+          throw refreshErr;
+        }
+      }
 
       if (!this.spreadsheetId) {
         await this.createOrFindSpreadsheet();

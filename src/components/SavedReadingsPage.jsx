@@ -146,8 +146,18 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
         try {
           await googleDriveService.refreshTokenIfNeeded();
         } catch (refreshErr) {
-          console.warn("Token refresh note during operation:", refreshErr.message);
-          // Don't fail the operation just because the proactive refresh hiccuped
+          if (refreshErr.message === "INTERACTIVE_SIGN_IN_REQUIRED") {
+            console.log("Interactive sign-in required during operation. Prompting user...");
+            try {
+              await googleDriveService.signIn();
+            } catch (signInErr) {
+              console.warn("User cancelled interactive sign-in:", signInErr.message);
+              return false; // Authentication flow was cancelled
+            }
+          } else {
+            console.warn("Token refresh note during operation:", refreshErr.message);
+            // Don't fail the operation just because the proactive refresh hiccuped in other ways
+          }
         }
       }
 

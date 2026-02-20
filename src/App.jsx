@@ -422,7 +422,16 @@ function App() {
         try {
           await googleDriveService.refreshTokenIfNeeded();
         } catch (refreshErr) {
-          console.warn("Refresh failed before viewing readings (will not sign out):", refreshErr.message);
+          if (refreshErr.message === "INTERACTIVE_SIGN_IN_REQUIRED") {
+            console.log("Interactive sign-in required. Prompting user...");
+            try {
+              await googleDriveService.signIn();
+            } catch (signInErr) {
+              console.warn("User cancelled interactive sign-in:", signInErr.message);
+            }
+          } else {
+            console.warn("Refresh failed before viewing readings (will not sign out):", refreshErr.message);
+          }
         }
       }
 
