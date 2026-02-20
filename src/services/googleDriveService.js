@@ -2,6 +2,8 @@ class GoogleDriveService {
   constructor() {
     this.isAuthenticated = false;
     this.accessToken = null;
+    this.tokenExpiresAt = null;  // Timestamp (ms) when the access token expires
+    this.refreshTimer = null;    // Timer ID for proactive token refresh
     this.userInfo = null;
     this.folderId = null;
     this.spreadsheetId = null;
@@ -21,10 +23,24 @@ class GoogleDriveService {
       if (savedState) {
         const state = JSON.parse(savedState);
         this.accessToken = state.accessToken;
+        this.tokenExpiresAt = state.tokenExpiresAt || null;
         this.userInfo = state.userInfo;
         this.isAuthenticated = state.isAuthenticated;
         this.folderId = state.folderId;
         this.spreadsheetId = state.spreadsheetId;
+
+        if (this.isAuthenticated) {
+          const isExpired = this.tokenExpiresAt && Date.now() >= this.tokenExpiresAt;
+          if (isExpired) {
+            // Token already expired — silently refresh on startup (uses Google's browser session cookie)
+            console.log("🔑 Saved token expired. Will silently refresh on startup...");
+            // Delay to allow the Google Identity Services script to load first
+            setTimeout(() => this.silentRefresh(), 2000);
+          } else {
+            // Token still valid — schedule refresh before it expires
+            this.scheduleTokenRefresh();
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to load saved state:", error);
@@ -37,6 +53,7 @@ class GoogleDriveService {
     try {
       const state = {
         accessToken: this.accessToken,
+        tokenExpiresAt: this.tokenExpiresAt,
         userInfo: this.userInfo,
         isAuthenticated: this.isAuthenticated,
         folderId: this.folderId,
@@ -45,6 +62,68 @@ class GoogleDriveService {
       localStorage.setItem("googleDriveAuth", JSON.stringify(state));
     } catch (error) {
       console.error("Failed to save state:", error);
+    }
+  }
+
+  // Schedule a silent token refresh 5 minutes before expiry
+  scheduleTokenRefresh() {
+    // Clear any existing timer
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+
+    if (!this.tokenExpiresAt || !this.isAuthenticated) return;
+
+    const msUntilExpiry = this.tokenExpiresAt - Date.now();
+    const refreshIn = Math.max(msUntilExpiry - 5 * 60 * 1000, 0); // 5 min before expiry, min 0
+
+    console.log(`🔄 Token refresh scheduled in ${Math.round(refreshIn / 60000)} min`);
+
+    this.refreshTimer = setTimeout(() => {
+      this.silentRefresh();
+    }, refreshIn);
+  }
+
+  // Silently refresh the access token without user interaction
+  silentRefresh() {
+    if (!this.isAuthenticated || !this.clientId) return;
+
+    console.log("🔄 Proactively refreshing access token silently...");
+
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: this.clientId,
+        scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+        callback: (tokenResponse) => {
+          if (tokenResponse.error) {
+            console.warn("Proactive refresh failed (will retry):", tokenResponse.error);
+            // Retry in 2 minutes if proactive refresh fails
+            this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
+            return;
+          }
+
+          this.accessToken = tokenResponse.access_token;
+          if (tokenResponse.expires_in) {
+            this.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000;
+          }
+          this.saveState();
+          console.log("✅ Token proactively refreshed — stays signed in!");
+          // Schedule the next refresh
+          this.scheduleTokenRefresh();
+        },
+        error_callback: (error) => {
+          console.warn("Proactive silent refresh error (will retry):", error);
+          // Retry in 2 minutes
+          this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
+        }
+      });
+
+      client.requestAccessToken({ prompt: '' });
+    } catch (err) {
+      console.warn("Could not set up silent refresh:", err);
+      // Retry in 2 minutes
+      this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
     }
   }
 
@@ -251,8 +330,16 @@ class GoogleDriveService {
               this.userInfo = userInfo;
               this.isAuthenticated = true;
 
+              // Store when the token expires and schedule proactive refresh
+              if (response.expires_in) {
+                this.tokenExpiresAt = Date.now() + response.expires_in * 1000;
+              }
+
               // Save state to localStorage
               this.saveState();
+
+              // Schedule silent refresh before this token expires
+              this.scheduleTokenRefresh();
 
               resolve(userInfo);
             } catch (error) {
@@ -282,6 +369,12 @@ class GoogleDriveService {
 
   // Sign out user
   async signOut() {
+    // Cancel scheduled token refresh
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+
     try {
       if (this.accessToken) {
         try {
