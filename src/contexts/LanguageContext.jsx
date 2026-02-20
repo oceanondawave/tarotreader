@@ -157,7 +157,7 @@ const translations = {
     serviceCaution:
       "Tác giả sử dụng dịch vụ miễn phí, có thể gián đoạn nếu lượt sử dụng cao, mong mọi người thông cảm",
     freeUseDisclaimer:
-      "Ứng dụng này hoàn toàn miễn phí cho các mục đích phi thương mại. Vui lòng ghi nguồn tác giả nếu bạn chia sẻ ở nơi khác. Tác giả không bao giờ yêu cầu quyên góp hay có ý định kiếm tiền từ dự án này. Nếu bạn thấy tác phẩm này bị đánh cắp và bị đem ra yêu cầu trả tiền ở nơi khác, vui lòng báo cáo cho tôi qua email <strong>minh.ngntri@gmail.com</strong>.",
+      "Ứng dụng này hoàn toàn miễn phí cho các mục đích phi thương mại. Vui lòng ghi nguồn tác giả nếu bạn chia sẻ ở nơi khác. Tác giả không bao giờ yêu cầu quyên góp hay có ý định kiếm tiền từ dự án này. Nếu bạn thấy sản phẩm này bị đánh cắp và bị đem ra yêu cầu trả tiền ở nơi khác, vui lòng báo cáo cho tôi qua email <strong>minh.ngntri@gmail.com</strong>.",
 
     // Answer
     answerTitle: "Kết Quả Bói Của Bạn",
