@@ -700,28 +700,30 @@ function App() {
               {t("subtitle")}
             </motion.p>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{
-                background: "var(--bg-subtle)",
-                border: "1px solid var(--border-color)",
-                padding: "1rem",
-                borderRadius: "12px",
-                maxWidth: "650px",
-                margin: "1.5rem auto 2rem",
-                fontSize: "0.9rem",
-                lineHeight: "1.5",
-                color: "var(--text-secondary)",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
-              }}
-            >
-              <p>
-                <AlertTriangle className="icon-inline" size={16} style={{ color: "var(--accent-primary)", marginRight: "0.5rem" }} />
-                <span dangerouslySetInnerHTML={{ __html: t("freeUseDisclaimer") }} />
-              </p>
-            </motion.div>
+            {step === 1 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                style={{
+                  background: "var(--bg-subtle)",
+                  border: "1px solid var(--border-color)",
+                  padding: "1rem",
+                  borderRadius: "12px",
+                  maxWidth: "650px",
+                  margin: "1.5rem auto 2rem",
+                  fontSize: "0.9rem",
+                  lineHeight: "1.5",
+                  color: "var(--text-secondary)",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
+                }}
+              >
+                <p>
+                  <AlertTriangle className="icon-inline" size={16} style={{ color: "var(--accent-primary)", marginRight: "0.5rem" }} />
+                  <span dangerouslySetInnerHTML={{ __html: t("freeUseDisclaimer") }} />
+                </p>
+              </motion.div>
+            )}
           </motion.div>
 
           {error && (
