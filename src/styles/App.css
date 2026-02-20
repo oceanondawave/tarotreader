@@ -2977,6 +2977,9 @@ select option:checked {
   z-index: 100;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-subtle);
+  overflow: visible;
+  /* Prevent sticky header from invisibly intercepting taps below on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .page-header h1 {
@@ -3002,6 +3005,8 @@ select option:checked {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .back-button:hover {
@@ -3026,6 +3031,8 @@ select option:checked {
   justify-content: center;
   gap: 0.5rem;
   line-height: 1;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cleanup-button:hover:not(:disabled) {
@@ -3505,6 +3512,8 @@ select option:checked {
   align-items: center;
   justify-content: center;
   min-width: 80px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .delete-reading-button:hover {
@@ -3538,6 +3547,8 @@ select option:checked {
   cursor: pointer;
   transition: all 0.2s;
   min-width: 80px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .view-reading-button:hover {
