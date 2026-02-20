@@ -3009,9 +3009,11 @@ select option:checked {
   -webkit-tap-highlight-color: transparent;
 }
 
-.back-button:hover {
-  background: var(--bg-tertiary);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .back-button:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+  }
 }
 
 .cleanup-button {
@@ -3035,11 +3037,13 @@ select option:checked {
   -webkit-tap-highlight-color: transparent;
 }
 
-.cleanup-button:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-  border-color: var(--accent-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--shadow);
+@media (hover: hover) and (pointer: fine) {
+  .cleanup-button:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
 }
 
 .cleanup-button:disabled {
@@ -3129,6 +3133,9 @@ select option:checked {
   font-family: "Noto Sans", sans-serif;
   outline: none;
   transition: all 0.2s;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .search-input:focus {
@@ -3155,12 +3162,16 @@ select option:checked {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.clear-search-button:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border-color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .clear-search-button:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+  }
 }
 
 .page-content {
@@ -3516,11 +3527,13 @@ select option:checked {
   -webkit-tap-highlight-color: transparent;
 }
 
-.delete-reading-button:hover {
-  background: var(--danger-hover);
-  border-color: var(--danger-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .delete-reading-button:hover {
+    background: var(--danger-hover);
+    border-color: var(--danger-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+  }
 }
 
 .delete-reading-button:active {
@@ -3551,9 +3564,11 @@ select option:checked {
   -webkit-tap-highlight-color: transparent;
 }
 
-.view-reading-button:hover {
-  background: var(--accent-glow);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .view-reading-button:hover {
+    background: var(--accent-glow);
+    transform: translateY(-1px);
+  }
 }
 
 .view-reading-button:active {
