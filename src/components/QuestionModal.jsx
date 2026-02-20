@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
@@ -38,6 +38,7 @@ function QuestionModal({
   onCancel,
 }) {
   const { t, language } = useLanguage();
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -69,19 +70,23 @@ function QuestionModal({
           onClick={onCancel}
         >
           <motion.div
+            ref={modalRef}
             className="modal-content"
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="question-modal-title"
           >
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h2 className="modal-title">{t("modalTitle")}</h2>
+              <h2 id="question-modal-title" className="modal-title">{t("modalTitle")}</h2>
               <p className="modal-subtitle">{t("modalSubtitle")}</p>
             </motion.div>
 

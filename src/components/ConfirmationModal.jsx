@@ -88,12 +88,15 @@ function ConfirmationModal({ isOpen, onConfirm, onCancel }) {
             <motion.div
               ref={modalRef}
               className="confirmation-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="confirm-modal-title"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={springTransition}
             >
-              <h3>{t("confirmResetTitle")}</h3>
+              <h3 id="confirm-modal-title">{t("confirmResetTitle")}</h3>
               <p>{t("confirmResetMessage")}</p>
               <div className="modal-buttons">
                 <motion.button

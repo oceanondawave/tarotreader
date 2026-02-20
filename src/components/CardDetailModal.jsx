@@ -76,6 +76,9 @@ function CardDetailModal({ isOpen, card, onClose }) {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="card-detail-modal-title"
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -87,7 +90,7 @@ function CardDetailModal({ isOpen, card, onClose }) {
                             width: "100%",
                             maxWidth: "500px",
                             maxHeight: "90vh",
-                            overflow: "hidden", // Prevent outer scroll 
+                            overflow: "hidden",
                             borderRadius: "16px",
                             display: "flex",
                             flexDirection: "column",
@@ -136,7 +139,7 @@ function CardDetailModal({ isOpen, card, onClose }) {
                                 transition={{ delay: 0.1 }}
                                 style={{ textAlign: "center", marginBottom: "1.5rem" }}
                             >
-                                <h2 className="modal-title" style={{ marginBottom: "0.5rem", fontSize: "2rem" }}>
+                                <h2 id="card-detail-modal-title" className="modal-title" style={{ marginBottom: "0.5rem", fontSize: "2rem" }}>
                                     {language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
                                 </h2>
                                 <p className="modal-subtitle" style={{ fontSize: "1rem", opacity: 0.8 }}>

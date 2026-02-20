@@ -125,7 +125,17 @@ The built files will be in the `dist` directory.
 
 ## 📝 License
 
-MIT License - feel free to use this project for personal or commercial purposes.
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)** license.
+
+- ✅ Free to use for personal and non-commercial purposes
+- ✅ Free to share and adapt with attribution
+- ❌ Commercial use is prohibited
+- ❌ Selling or monetizing this app or any derivative is not allowed
+
+If you share or build on this project, please credit the original author: **Nguyen Minh** ([github.com/oceanondawave](https://github.com/oceanondawave)).  
+For commercial licensing inquiries: **minh.ngntri@gmail.com**
 
 ## 🌟 Tips
 
