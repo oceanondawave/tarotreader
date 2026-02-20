@@ -143,21 +143,21 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
   const checkAuthBeforeOperation = async () => {
     try {
       if (googleDriveService.isAuthenticated) {
-        await googleDriveService.refreshTokenIfNeeded();
+        try {
+          await googleDriveService.refreshTokenIfNeeded();
+        } catch (refreshErr) {
+          console.warn("Token refresh note during operation:", refreshErr.message);
+          // Don't fail the operation just because the proactive refresh hiccuped
+        }
       }
 
       if (!googleDriveService.isAuthenticated) {
-        if (onSheetNotFound) {
-          onSheetNotFound();
-        }
+        // Only trigger sheet not found if it explicitly says so, don't use it as a generic auth failure
         return false;
       }
       return true;
     } catch (error) {
       console.error("Auth check failed during operation:", error);
-      if (onSheetNotFound) {
-        onSheetNotFound();
-      }
       return false;
     }
   };

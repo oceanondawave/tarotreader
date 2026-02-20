@@ -61,17 +61,17 @@ function App() {
       try {
         // Check if googleDriveService has saved state
         if (googleDriveService.isAuthenticated && googleDriveService.userInfo) {
-          // Verify the token is still valid
+          // Restore sign-in state into React state immediately so UI reflects it
+          setIsGoogleSignedIn(true);
+          setGoogleUserInfo(googleDriveService.userInfo);
+
+          // Trigger a refresh if needed, but don't sign out if it fails
+          // (Safari might block silent refreshes without user interaction)
           try {
             await googleDriveService.refreshTokenIfNeeded();
-            // Token is valid, restore sign-in state
-            setIsGoogleSignedIn(true);
-            setGoogleUserInfo(googleDriveService.userInfo);
           } catch (error) {
-            // Token is expired, clear the state
-            googleDriveService.signOut();
-            setIsGoogleSignedIn(false);
-            setGoogleUserInfo(null);
+            console.warn("Startup token refresh check failed, keeping session alive:", error.message);
+            // DO NOT sign out here. The background silentRefresh timer handles real expirations.
           }
         }
       } catch (error) {
@@ -148,10 +148,11 @@ function App() {
             await googleDriveService.refreshTokenIfNeeded();
           }
 
-          // Only sign out if the service itself lost auth state (not on network errors)
+          // If the service loses its auth state entirely, we just return to main page
+          // BUT WE DO NOT SIGN THE USER OUT forcefully. They keep their session.
           if (!googleDriveService.isAuthenticated) {
-            console.warn("Service lost auth state, signing out");
-            handleGoogleSignOut();
+            console.warn("Service lost auth state. Retaining React sign-in state to prevent forced logout.");
+            // We just let the UI remain signed in. Next user action might trigger a successful refresh.
             setCurrentPage("main");
             setStep(1);
           }
@@ -372,7 +373,7 @@ function App() {
     handleGoogleSignOut();
     setCurrentPage("main"); // Return to main page
     setStep(1); // Reset to step 1
-    alert("Spreadsheet was deleted. You have been signed out.");
+    alert(t("sheetDeletedMessage"));
   };
 
   const handleReadingSaved = () => {
@@ -418,20 +419,24 @@ function App() {
     try {
       // Check if user is still authenticated before navigating
       if (googleDriveService.isAuthenticated) {
-        await googleDriveService.refreshTokenIfNeeded();
+        try {
+          await googleDriveService.refreshTokenIfNeeded();
+        } catch (refreshErr) {
+          console.warn("Refresh failed before viewing readings (will not sign out):", refreshErr.message);
+        }
       }
 
-      // If still authenticated after refresh, navigate
+      // If still authenticated after refresh attempt, navigate
       if (googleDriveService.isAuthenticated) {
         setCurrentPage("saved-readings");
         setShowUserInfoDialog(false); // Close the dialog when navigating
       } else {
-        // Token expired, sign out
+        // Token explicitly revoked or signed out
         handleGoogleSignOut();
       }
     } catch (error) {
-      // If error during check, sign out and stay on main page
-      handleGoogleSignOut();
+      // If error during check, stay on main page but do not sign out
+      console.warn("Navigation check failed:", error.message);
     }
   };
 

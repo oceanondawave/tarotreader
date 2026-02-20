@@ -169,6 +169,7 @@ const translations = {
     errorApiKey: "",
     errorReading: "Không thể bói. Vui lòng thử lại.",
     errorPuterAuth: "Không thể xác thực với Puter.com. Vui lòng đăng nhập để tiếp tục.",
+    sheetDeletedMessage: "Bảng tính (spreadsheet) đã bị xóa khỏi Drive. Bạn đã bị đăng xuất.",
 
     // Language
     language: "Ngôn ngữ",
@@ -356,6 +357,7 @@ const translations = {
     errorApiKey: "",
     errorReading: "Unable to read. Please try again.",
     errorPuterAuth: "Cannot authorize with Puter.com. Please sign in to continue.",
+    sheetDeletedMessage: "Spreadsheet was deleted. You have been signed out.",
 
     // Language
     language: "Language",
