@@ -3462,10 +3462,12 @@ select option:checked {
   box-shadow: 0 2px 8px var(--shadow);
 }
 
-.reading-item:hover {
-  border-color: var(--accent-primary);
-  box-shadow: 0 4px 20px var(--shadow);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .reading-item:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 4px 20px var(--shadow);
+    transform: translateY(-2px);
+  }
 }
 
 
