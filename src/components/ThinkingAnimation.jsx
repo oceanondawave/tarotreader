@@ -146,6 +146,10 @@ function ThinkingAnimation() {
           aria-label={isPlaying ? t("pauseFacts") : t("playFacts")}
           aria-pressed={isPlaying}
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
             padding: "0.6rem 1.2rem",
             background: "var(--bg-card)",
             color: "var(--text-primary)",
@@ -155,13 +159,12 @@ function ThinkingAnimation() {
             fontFamily: "Playfair Display, serif",
             fontWeight: "600",
             cursor: "pointer",
-            marginTop: "1.5rem",
-            marginBottom: "1.5rem",
+            margin: "1.5rem auto",
             transition: "all 0.3s ease",
           }}
           onMouseEnter={(e) => {
-            e.target.style.transform = "translateY(-2px)";
-            e.target.style.boxShadow = "0 4px 12px var(--shadow)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 4px 12px var(--shadow)";
           }}
           onMouseLeave={(e) => {
             e.target.style.transform = "translateY(0)";
