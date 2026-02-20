@@ -500,12 +500,10 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
                 <motion.div
                   key={reading.id}
                   className="reading-item"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: index * 0.1,
-                    ...springTransition,
-                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <div className="reading-header">
                     <div className="reading-date">
