@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../contexts/LanguageContext";
 import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 const springTransition = {
     type: "spring",
@@ -29,8 +31,6 @@ const modalVariants = {
     },
 };
 
-import { useEffect, useRef } from "react";
-
 function CardDetailModal({ isOpen, card, onClose }) {
     const { t, language } = useLanguage();
     const closeButtonRef = useRef(null);
@@ -52,7 +52,7 @@ function CardDetailModal({ isOpen, card, onClose }) {
 
     if (!card) return null;
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <motion.div
@@ -256,7 +256,8 @@ function CardDetailModal({ isOpen, card, onClose }) {
                     </motion.div>
                 </motion.div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }
 

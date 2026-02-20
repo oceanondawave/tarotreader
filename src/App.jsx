@@ -114,26 +114,20 @@ function App() {
     }
   }, [isGoogleSignedIn]);
 
-  // Check auth status periodically and on actions
+  // Check auth status on mount only - don't sign out aggressively on error
   useEffect(() => {
     if (isGoogleSignedIn) {
       const checkAuth = async () => {
         try {
-          // Only check if service is authenticated
+          // Only check if service thinks it's authenticated
           if (!googleDriveService.isAuthenticated) {
-            handleGoogleSignOut();
-            return;
-          }
-
-          const authStatus = await googleDriveService.checkAuthStatus();
-          if (!authStatus.isValid) {
-            handleGoogleSignOut();
+            // Service state mismatch - service lost state but app thinks signed in
+            // Don't sign out immediately - let the user's next action trigger auth
+            console.warn("Auth state mismatch: service not authenticated but app thinks it is");
           }
         } catch (error) {
-          // Only sign out if it's a token expiration error
-          if (error.message.includes("Token expired")) {
-            handleGoogleSignOut();
-          }
+          // Don't sign out on errors - network issues etc.
+          console.warn("Auth check error (will not sign out):", error);
         }
       };
 
@@ -154,15 +148,17 @@ function App() {
             await googleDriveService.refreshTokenIfNeeded();
           }
 
+          // Only sign out if the service itself lost auth state (not on network errors)
           if (!googleDriveService.isAuthenticated) {
+            console.warn("Service lost auth state, signing out");
             handleGoogleSignOut();
             setCurrentPage("main");
             setStep(1);
           }
         } catch (error) {
-          handleGoogleSignOut();
-          setCurrentPage("main");
-          setStep(1);
+          // Don't sign out on network errors or token refresh failures
+          // The user's session state is preserved in localStorage
+          console.warn("Auth check on saved readings page failed (will not sign out):", error.message);
         }
       };
 

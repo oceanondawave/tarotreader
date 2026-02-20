@@ -90,8 +90,8 @@ class GoogleDriveService {
               scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
               callback: (tokenResponse) => {
                 if (tokenResponse.error) {
-                  console.error("Silent refresh failed:", tokenResponse.error);
-                  this.signOut();
+                  console.warn("Silent refresh failed (will not sign out):", tokenResponse.error);
+                  // Don't sign out - just reject so the caller can handle it
                   reject(new Error("Token refresh failed - please sign in again"));
                   return;
                 }
@@ -102,8 +102,8 @@ class GoogleDriveService {
                 resolve(true);
               },
               error_callback: (error) => {
-                console.error("Silent refresh oauth error:", error);
-                this.signOut();
+                console.warn("Silent refresh oauth error (will not sign out):", error);
+                // Don't sign out - Safari commonly blocks silent OAuth popups
                 reject(new Error("Token refresh error - please sign in again"));
               }
             });
@@ -111,8 +111,8 @@ class GoogleDriveService {
             // Request token silently without a popup
             client.requestAccessToken({ prompt: '' });
           } catch (initError) {
-            console.error("Error setting up silent refresh:", initError);
-            this.signOut();
+            console.warn("Error setting up silent refresh (will not sign out):", initError);
+            // Don't sign out - just propagate the error
             reject(initError);
           }
         });
@@ -120,12 +120,8 @@ class GoogleDriveService {
 
       return true; // Token is still valid
     } catch (error) {
-      console.error("Token validation failed:", error);
-      // If it's a network error, don't sign out
-      if (error.message && error.message.includes("Token expired")) {
-        // In case an older error propagated
-        this.signOut();
-      }
+      // Only propagate - never sign out automatically on network errors
+      console.warn("Token validation failed (will not sign out):", error.message);
       throw error;
     }
   }

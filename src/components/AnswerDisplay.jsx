@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../contexts/LanguageContext";
 import googleDriveService from "../services/googleDriveService";
+import CardDetailModal from "./CardDetailModal";
 import {
   Download, Calendar, Check, AlertTriangle, Cloud,
   FileText, Copy, Share2, Loader, ArrowLeft
@@ -58,6 +59,8 @@ function AnswerDisplay({
   const [autoSaved, setAutoSaved] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const answerSectionRef = useRef(null);
   const hasAutoSaved = useRef(false);
 
@@ -1069,6 +1072,12 @@ function AnswerDisplay({
                 scale: 1.05,
                 transition: { ...springTransition, stiffness: 400 },
               }}
+              onClick={() => { setSelectedCard(card); setIsModalOpen(true); }}
+              style={{ cursor: "pointer" }}
+              aria-label={language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedCard(card); setIsModalOpen(true); } }}
             >
               <div className="result-card-image-container">
                 <img
@@ -1244,6 +1253,12 @@ function AnswerDisplay({
       >
         {t("newReadingButton")}
       </motion.button>
+
+      <CardDetailModal
+        isOpen={isModalOpen}
+        card={selectedCard}
+        onClose={() => { setIsModalOpen(false); setSelectedCard(null); }}
+      />
     </motion.div>
   );
 }
