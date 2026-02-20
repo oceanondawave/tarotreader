@@ -1688,6 +1688,9 @@ select option:checked {
   cursor: pointer;
   transition: all 0.3s var(--transition-smooth);
   box-shadow: 0 2px 8px var(--shadow);
+  height: 42px;
+  /* Force same height as sign out button */
+  box-sizing: border-box;
 }
 
 .user-avatar-compact:hover:not(:disabled) {
@@ -1736,19 +1739,22 @@ select option:checked {
 .sign-out-compact-button {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.75rem;
+  gap: 0.5rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 0.4rem 0.75rem;
   color: var(--text-primary);
   font-size: 0.8rem;
   font-family: "Playfair Display", serif;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s var(--transition-smooth);
   white-space: nowrap;
-  box-shadow: 0 2px 4px var(--shadow);
+  box-shadow: 0 2px 8px var(--shadow);
+  height: 42px;
+  /* Force same height as avatar button */
+  box-sizing: border-box;
 }
 
 .sign-out-compact-button:hover:not(:disabled) {
@@ -1756,6 +1762,7 @@ select option:checked {
   border-color: var(--error-color);
   color: var(--error-color);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .sign-out-compact-button:disabled {
@@ -1769,9 +1776,12 @@ select option:checked {
     margin: 0.25rem 0 0.75rem 0;
   }
 
-  .user-avatar-compact {
+  .user-avatar-compact,
+  .sign-out-compact-button {
     padding: 0.4rem 0.8rem;
     gap: 0.4rem;
+    height: 40px;
+    /* Slightly smaller on mobile */
   }
 
   .user-name-compact {
@@ -1790,12 +1800,15 @@ select option:checked {
     margin: 0.25rem 0 0.5rem 0;
   }
 
-  .user-avatar-compact {
+  .user-avatar-compact,
+  .sign-out-compact-button {
     padding: 0.35rem 0.7rem;
     gap: 0.35rem;
+    height: 38px;
   }
 
-  .user-name-compact {
+  .user-name-compact,
+  .sign-out-compact-button {
     font-size: 0.75rem;
   }
 
@@ -2075,6 +2088,10 @@ select option:checked {
   border: 2px solid transparent;
   border-top: 2px solid currentColor;
   border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.icon-spin {
   animation: spin 1s linear infinite;
 }
 

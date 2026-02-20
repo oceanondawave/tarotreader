@@ -131,7 +131,7 @@ const springTransition = {
 };
 
 function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [readings, setReadings] = useState([]);
   const [filteredReadings, setFilteredReadings] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -529,7 +529,7 @@ function SavedReadingsPage({ onBack, onViewReading, onSheetNotFound }) {
                     <Layers className="cards-icon" size={18} />
                     <span>
                       {reading.cards
-                        .map((card) => card.name)
+                        .map((card) => language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name)
                         .filter((name) => name)
                         .join(", ")}
                     </span>

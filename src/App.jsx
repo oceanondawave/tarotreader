@@ -82,10 +82,10 @@ function App() {
     restoreSignInState();
   }, []); // Run only once on mount
 
-  // Check for #verify in URL
+  // Check for #/all-cards in URL
   useEffect(() => {
     const checkHash = () => {
-      setShowVerification(window.location.hash === "#verify");
+      setShowVerification(window.location.hash === "#/all-cards");
     };
 
     checkHash();
@@ -140,9 +140,8 @@ function App() {
       // Check auth status on component mount
       checkAuth();
 
-      // Set up periodic checking (every 10 minutes instead of 5)
-      const interval = setInterval(checkAuth, 10 * 60 * 1000);
-      return () => clearInterval(interval);
+      // Removed periodic checking to prevent unexpected logouts while idle
+      // It will now check when making API calls instead
     }
   }, [isGoogleSignedIn]);
 
@@ -536,7 +535,7 @@ function App() {
     });
   };
 
-  // Show verification page if #verify in URL
+  // Show verification page if #/all-cards in URL
   if (showVerification) {
     return (
       <>
@@ -593,7 +592,7 @@ function App() {
 
             <div className="view-all-cards-button-container">
               <motion.a
-                href="#verify"
+                href="#/all-cards"
                 className="view-all-cards-button"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -700,6 +699,29 @@ function App() {
             >
               {t("subtitle")}
             </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              style={{
+                background: "var(--bg-subtle)",
+                border: "1px solid var(--border-color)",
+                padding: "1rem",
+                borderRadius: "12px",
+                maxWidth: "650px",
+                margin: "1.5rem auto 2rem",
+                fontSize: "0.9rem",
+                lineHeight: "1.5",
+                color: "var(--text-secondary)",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
+              }}
+            >
+              <p>
+                <AlertTriangle className="icon-inline" size={16} style={{ color: "var(--accent-primary)", marginRight: "0.5rem" }} />
+                <span dangerouslySetInnerHTML={{ __html: t("freeUseDisclaimer") }} />
+              </p>
+            </motion.div>
           </motion.div>
 
           {error && (
@@ -829,37 +851,34 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, ...springTransition }}
         >
-          <p>
-            By @oceanondawave / Powered by{" "}
-            <a
-              href="https://puter.com"
-              target="_blank"
-              rel="noreferrer"
-              className="author-link"
-            >
-              Puter.com
-            </a>
-            ,{" "}
-            <a
-              href="https://cursor.sh"
-              target="_blank"
-              rel="noreferrer"
-              className="author-link"
-            >
-              Cursor
-            </a>{" "}
-            &{" "}
-            <a
-              href="https://antigravity.google/"
-              target="_blank"
-              rel="noreferrer"
-              className="author-link"
-            >
-              Antigravity
-            </a>
+          <p style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <span>
+              By{" "}
+              <a href="https://github.com/oceanondawave" target="_blank" rel="noreferrer" className="author-link">
+                @oceanondawave
+              </a>
+              {" "} / Powered by{" "}
+              <a href="https://puter.com" target="_blank" rel="noreferrer" className="author-link">
+                Puter.com
+              </a>
+              ,{" "}
+              <a href="https://cursor.sh" target="_blank" rel="noreferrer" className="author-link">
+                Cursor
+              </a>{" "}
+              &{" "}
+              <a href="https://antigravity.google/" target="_blank" rel="noreferrer" className="author-link">
+                Antigravity
+              </a>
+            </span>
+            <span style={{ fontSize: "0.85em", opacity: 0.8 }}>
+              Open-sourced at{" "}
+              <a href="https://github.com/oceanondawave/tarotreader" target="_blank" rel="noreferrer" className="author-link">
+                github.com/oceanondawave/tarotreader
+              </a>
+            </span>
           </p>
         </motion.div>
-      </div>
+      </div >
     </>
   );
 }

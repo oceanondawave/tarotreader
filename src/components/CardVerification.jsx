@@ -1,9 +1,30 @@
+import { useState, useRef, useEffect } from "react";
 import { tarotCards } from "../data/tarotCards";
 import { useLanguage } from "../contexts/LanguageContext";
+import CardDetailModal from "./CardDetailModal";
 import "./CardVerification.css";
 
 function CardVerification() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Accessibility: Return focus to the clicked card after modal closes
+  const clickedCardRef = useRef(null);
+  const cardRefs = useRef({});
+
+  const handleCardClick = (card, id) => {
+    clickedCardRef.current = id;
+    setSelectedCard(card);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    if (clickedCardRef.current && cardRefs.current[clickedCardRef.current]) {
+      cardRefs.current[clickedCardRef.current].focus();
+    }
+  };
 
   // Group cards by suit
   const majorArcana = tarotCards.filter((card) => card.suit === "Major Arcana");
@@ -13,11 +34,25 @@ function CardVerification() {
   const pentacles = tarotCards.filter((card) => card.suit === "Pentacles");
 
   const CardDisplay = ({ card }) => (
-    <div className="verification-card">
+    <div
+      ref={(el) => (cardRefs.current[card.id] = el)}
+      className="verification-card"
+      onClick={() => handleCardClick(card, card.id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick(card, card.id);
+        }
+      }}
+      aria-label={`${t("viewReading")} ${language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}`}
+      style={{ cursor: "pointer" }}
+    >
       <div className="verification-card-image-wrapper">
         <img
           src={card.image}
-          alt={card.name}
+          alt={language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
           className="verification-card-image"
           onError={(e) => {
             e.target.style.border = "3px solid red";
@@ -27,7 +62,7 @@ function CardVerification() {
       </div>
       <div className="verification-card-info">
         <span className="verification-card-id">#{card.id}</span>
-        <span className="verification-card-name">{card.name}</span>
+        <span className="verification-card-name">{language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}</span>
       </div>
     </div>
   );
@@ -50,6 +85,9 @@ function CardVerification() {
       <div className="verification-header">
         <h1>🃏 {t("completeTarotDeck")}</h1>
         <p>{t("allCardsFrom", { count: tarotCards.length })}</p>
+        <p style={{ marginTop: "0.5rem", fontStyle: "italic", opacity: 0.8 }}>
+          {t("clickCardInstruction")}
+        </p>
         <a href="/" className="back-to-app">
           {t("backToTarotReader")}
         </a>
@@ -63,37 +101,40 @@ function CardVerification() {
 
       {/* Author Information */}
       <div className="author-info">
-        <p>
-          By @oceanondawave / Powered by{" "}
-          <a
-            href="https://puter.com"
-            target="_blank"
-            rel="noreferrer"
-            className="author-link"
-          >
-            Puter.com
-          </a>
-          ,{" "}
-          <a
-            href="https://cursor.sh"
-            target="_blank"
-            rel="noreferrer"
-            className="author-link"
-          >
-            Cursor
-          </a>{" "}
-          &{" "}
-          <a
-            href="https://antigravity.google/"
-            target="_blank"
-            rel="noreferrer"
-            className="author-link"
-          >
-            Antigravity
-          </a>
+        <p style={{ display: "flex", flexDirection: "column", gap: "0.25rem", alignItems: "center" }}>
+          <span>
+            By{" "}
+            <a href="https://github.com/oceanondawave" target="_blank" rel="noreferrer" className="author-link">
+              @oceanondawave
+            </a>
+            {" "} / Powered by{" "}
+            <a href="https://puter.com" target="_blank" rel="noreferrer" className="author-link">
+              Puter.com
+            </a>
+            ,{" "}
+            <a href="https://cursor.sh" target="_blank" rel="noreferrer" className="author-link">
+              Cursor
+            </a>{" "}
+            &{" "}
+            <a href="https://antigravity.google/" target="_blank" rel="noreferrer" className="author-link">
+              Antigravity
+            </a>
+          </span>
+          <span style={{ fontSize: "0.85em", opacity: 0.8 }}>
+            Open-sourced at{" "}
+            <a href="https://github.com/oceanondawave/tarotreader" target="_blank" rel="noreferrer" className="author-link">
+              github.com/oceanondawave/tarotreader
+            </a>
+          </span>
         </p>
       </div>
-    </div>
+
+      <CardDetailModal
+        isOpen={isModalOpen}
+        card={selectedCard}
+        onClose={handleCloseModal}
+      />
+    </div >
   );
 }
 

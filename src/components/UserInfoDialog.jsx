@@ -21,6 +21,17 @@ function UserInfoDialog({
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   // Focus trapping effect
   useEffect(() => {
     if (isOpen && modalRef.current) {

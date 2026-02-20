@@ -4,7 +4,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import googleDriveService from "../services/googleDriveService";
 import {
   Download, Calendar, Check, AlertTriangle, Cloud,
-  Coffee, FileText, Copy, Share2, Loader, ArrowLeft
+  FileText, Copy, Share2, Loader, ArrowLeft
 } from "lucide-react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
@@ -262,7 +262,7 @@ function AnswerDisplay({
               ]
               : []),
             {
-              text: card.name,
+              text: language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name,
               style: "cardName",
               alignment: "center",
               margin: [0, 5, 0, 5],
@@ -1073,7 +1073,7 @@ function AnswerDisplay({
               <div className="result-card-image-container">
                 <img
                   src={card.image}
-                  alt={card.name}
+                  alt={language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
                   className="result-card-image"
                   onError={(e) => {
                     e.target.style.display = "none";
@@ -1081,7 +1081,7 @@ function AnswerDisplay({
                   }}
                 />
               </div>
-              <div className="result-card-name">{card.name}</div>
+              <div className="result-card-name">{language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}</div>
             </motion.div>
           ))}
         </div>
@@ -1184,21 +1184,6 @@ function AnswerDisplay({
               <ArrowLeft className="icon-inline" size={18} /> {t("backToSavedReadings")}
             </motion.button>
           )}
-
-          <motion.a
-            href="https://me.momo.vn/oceanondawave"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="action-button secondary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, ...springTransition }}
-            aria-label={t("buyCoffee")}
-          >
-            <Coffee className="icon-inline" size={18} /> {t("buyCoffee")}
-          </motion.a>
 
           <motion.button
             className={`action-button secondary ${saved ? "success" : ""}`}

@@ -81,17 +81,49 @@ class GoogleDriveService {
       );
 
       if (response.status === 401) {
-        console.log("Token expired, need to re-authenticate");
-        // Clear the expired token and sign out
-        this.signOut();
-        throw new Error("Token expired - please sign in again");
+        console.log("Token expired, attempting silent refresh...");
+
+        return new Promise((resolve, reject) => {
+          try {
+            const client = google.accounts.oauth2.initTokenClient({
+              client_id: this.clientId,
+              scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+              callback: (tokenResponse) => {
+                if (tokenResponse.error) {
+                  console.error("Silent refresh failed:", tokenResponse.error);
+                  this.signOut();
+                  reject(new Error("Token refresh failed - please sign in again"));
+                  return;
+                }
+
+                this.accessToken = tokenResponse.access_token;
+                this.saveState();
+                console.log("Token successfully refreshed silently ✨");
+                resolve(true);
+              },
+              error_callback: (error) => {
+                console.error("Silent refresh oauth error:", error);
+                this.signOut();
+                reject(new Error("Token refresh error - please sign in again"));
+              }
+            });
+
+            // Request token silently without a popup
+            client.requestAccessToken({ prompt: '' });
+          } catch (initError) {
+            console.error("Error setting up silent refresh:", initError);
+            this.signOut();
+            reject(initError);
+          }
+        });
       }
 
       return true; // Token is still valid
     } catch (error) {
       console.error("Token validation failed:", error);
       // If it's a network error, don't sign out
-      if (error.message.includes("Token expired")) {
+      if (error.message && error.message.includes("Token expired")) {
+        // In case an older error propagated
         this.signOut();
       }
       throw error;

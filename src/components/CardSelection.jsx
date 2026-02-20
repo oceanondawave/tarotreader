@@ -50,7 +50,7 @@ function CardSelection({
   onSubmit,
   maxCards = 3,
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [shuffledCards, setShuffledCards] = useState([]);
   const [isShuffling, setIsShuffling] = useState(false);
   const [flippedCards, setFlippedCards] = useState(new Set());
@@ -156,6 +156,7 @@ function CardSelection({
   // Focus trapping effect for modals
   useEffect(() => {
     if ((showQuickSelectModal || showManualSelectModal) && modalRef.current) {
+      document.body.style.overflow = "hidden";
       const modal = modalRef.current;
       const focusableElements = modal.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -199,9 +200,12 @@ function CardSelection({
       document.addEventListener("focusin", preventFocus);
 
       return () => {
+        document.body.style.overflow = "unset";
         document.removeEventListener("keydown", handleKeyDown);
         document.removeEventListener("focusin", preventFocus);
       };
+    } else {
+      document.body.style.overflow = "unset";
     }
   }, [showQuickSelectModal, showManualSelectModal]);
 
@@ -475,7 +479,10 @@ function CardSelection({
               }}
               aria-label={isShuffling ? t("shuffling") : t("shuffleButton")}
             >
-              {isShuffling ? `🔄 ${t("shuffling")}` : t("shuffleButton")}
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <RefreshCw className={isShuffling ? "icon-spin" : ""} size={18} />
+                {isShuffling ? t("shuffling") : t("shuffleButton")}
+              </span>
             </motion.button>
 
             <div style={{ marginBottom: "1.5rem" }}>
@@ -521,7 +528,7 @@ function CardSelection({
                           const position =
                             shuffledCards.findIndex((c) => c.id === card.id) +
                             1;
-                          return `${position}: ${card.name}`;
+                          return `${position}: ${language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}`;
                         })
                         .join(", "),
                     })}
@@ -586,7 +593,7 @@ function CardSelection({
                             "positionLabel",
                             {
                               position,
-                              name: card.name,
+                              name: language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name,
                             }
                           )}`}
                           onMouseEnter={(e) => {
@@ -598,7 +605,7 @@ function CardSelection({
                           }}
                         >
                           <X className="icon-inline" size={14} /> {t("removeCardLabel")}{" "}
-                          {t("positionLabel", { position, name: card.name })}
+                          {t("positionLabel", { position, name: language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name })}
                         </button>
                       );
                     })}
@@ -756,7 +763,7 @@ function CardSelection({
                         position: index + 1,
                         row: Math.floor(index / 13) + 1,
                         totalRows: Math.ceil(shuffledCards.length / 13),
-                        name: card.name,
+                        name: language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name,
                         status: isSelected ? t("selected") : t("unselected"),
                         disabled: isDisabled ? t("disabled") : "",
                       })}`}
@@ -848,7 +855,7 @@ function CardSelection({
                         >
                           <img
                             src={card.image}
-                            alt={card.name}
+                            alt={language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
                             crossOrigin="anonymous"
                             loading="lazy"
                             decoding="async"
@@ -895,7 +902,7 @@ function CardSelection({
                               padding: "0 0.1rem",
                             }}
                           >
-                            {card.name}
+                            {language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
                           </div>
                         </div>
                       </motion.div>

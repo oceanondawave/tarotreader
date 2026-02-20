@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
@@ -36,7 +37,19 @@ function QuestionModal({
   onConfirm,
   onCancel,
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   const handleSubmit = () => {
     if (question.trim()) {
@@ -94,7 +107,7 @@ function QuestionModal({
                     <div className="modal-card-image-container">
                       <img
                         src={card.image}
-                        alt={card.name}
+                        alt={language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
                         className="modal-card-image"
                         loading="lazy"
                         onError={(e) => {
@@ -107,7 +120,7 @@ function QuestionModal({
                         <span className="modal-card-number">{index + 1}</span>
                       </div>
                     </div>
-                    <div className="modal-card-name">{card.name}</div>
+                    <div className="modal-card-name">{language === "vi" && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}</div>
                   </motion.div>
                 ))}
               </div>
