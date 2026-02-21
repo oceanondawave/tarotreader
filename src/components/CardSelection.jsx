@@ -849,7 +849,6 @@ function CardSelection({
                           duration: 0.6,
                           type: "tween",
                           ease: "easeOut",
-                          duration: 0.4,
                         }}
                         style={{
                           transformStyle: "preserve-3d",
