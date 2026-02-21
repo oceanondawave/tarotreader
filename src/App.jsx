@@ -59,6 +59,10 @@ function App() {
   useEffect(() => {
     const restoreSignInState = async () => {
       try {
+        // MUST preload the Google Identity scripts and Client ID in the background
+        // so that Safari does not block the popup when the user clicks 'Sign In' later.
+        googleDriveService.initialize().catch(e => console.error("Google Auth Preload Failed:", e.message));
+
         // Check if googleDriveService has saved state
         if (googleDriveService.isAuthenticated && googleDriveService.userInfo) {
           // Restore sign-in state into React state immediately so UI reflects it

@@ -273,132 +273,137 @@ class GoogleDriveService {
 
   // Sign in user
   signIn() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         console.log("🔍 Starting Google sign-in process...");
 
         // Mobile Safari popup blocker fix: 
-        // We must initialize the client *before* the user clicks, OR hope the fetch is fast enough (< 1000ms).
-        // If it's cached, initialize() is instant.
-        const initResult = await this.initialize();
-        if (!initResult) {
-          throw new Error("Failed to initialize Google API");
+        // Execute synchronously to the click event if already preloaded.
+        if (this.clientId && window.google?.accounts) {
+          this._executeSignIn(resolve, reject);
+        } else {
+          // Fallback to async if preload failed or wasn't finished
+          this.initialize()
+            .then((initResult) => {
+              if (!initResult) throw new Error("Failed to initialize Google API");
+              this._executeSignIn(resolve, reject);
+            })
+            .catch(reject);
         }
-
-        console.log("🔧 Creating OAuth client...");
-        const client = google.accounts.oauth2.initCodeClient({
-          client_id: this.clientId,
-          scope:
-            "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
-          callback: async (response) => {
-            console.log("🔍 OAuth code received:", response);
-            if (response.error) {
-              reject(new Error(response.error));
-              return;
-            }
-
-            try {
-              // Exchange the authorization code via our secure Vercel backend
-              const tokenResponse = await fetch("/api/auth", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  action: "exchange_code",
-                  code: response.code,
-                  redirect_uri: window.location.origin,
-                }),
-              });
-
-              const tokenData = await tokenResponse.json();
-
-              if (!tokenResponse.ok) {
-                console.error("Token exchange failed:", tokenData);
-                throw new Error(tokenData.error_description || "Failed to exchange authorization code");
-              }
-
-              this.accessToken = tokenData.access_token;
-
-              // Only update the refresh token if Google actually gave us a new one
-              // (Sometimes they only give it on the very first authorization)
-              if (tokenData.refresh_token) {
-                this.refreshToken = tokenData.refresh_token;
-              }
-
-              // Get user info
-              const userResponse = await fetch(
-                "https://www.googleapis.com/oauth2/v2/userinfo",
-                {
-                  headers: {
-                    Authorization: `Bearer ${this.accessToken}`,
-                  },
-                }
-              );
-
-              const userInfo = await userResponse.json();
-
-              // Verify that the token has the required Drive permission
-              try {
-                // Try to list files in Drive to verify permission
-                const driveResponse = await fetch(
-                  "https://www.googleapis.com/drive/v3/files?pageSize=1",
-                  {
-                    headers: {
-                      Authorization: `Bearer ${this.accessToken}`,
-                    },
-                  }
-                );
-
-                if (!driveResponse.ok) {
-                  // If Drive API fails, user didn't grant Drive permission
-                  reject(new Error("Drive permission not granted"));
-                  return;
-                }
-              } catch (driveError) {
-                // If we can't access Drive, user didn't grant permission
-                reject(new Error("Drive permission not granted"));
-                return;
-              }
-
-              this.userInfo = userInfo;
-              this.isAuthenticated = true;
-
-              // Store when the token expires and schedule proactive refresh
-              if (tokenData.expires_in) {
-                this.tokenExpiresAt = Date.now() + tokenData.expires_in * 1000;
-              }
-
-              // Save state to localStorage
-              this.saveState();
-
-              // Schedule refresh before this token expires
-              this.scheduleTokenRefresh();
-
-              resolve(userInfo);
-            } catch (error) {
-              reject(error);
-            }
-          },
-          error_callback: (error) => {
-            console.error("OAuth error:", error);
-            reject(
-              new Error(
-                error.type === "popup_closed"
-                  ? "Popup was closed"
-                  : "Authentication failed"
-              )
-            );
-          },
-        });
-
-        console.log("🚀 Requesting authorization code...");
-        client.requestCode();
       } catch (error) {
         console.error("Sign in failed:", error);
         reject(error);
       }
     });
+  }
+
+  _executeSignIn(resolve, reject) {
+    console.log("🔧 Creating OAuth client...");
+    const client = window.google.accounts.oauth2.initCodeClient({
+      client_id: this.clientId,
+      scope:
+        "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+      callback: async (response) => {
+        console.log("🔍 OAuth code received:", response);
+        if (response.error) {
+          reject(new Error(response.error));
+          return;
+        }
+
+        try {
+          // Exchange the authorization code via our secure Vercel backend
+          const tokenResponse = await fetch("/api/auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "exchange_code",
+              code: response.code,
+              redirect_uri: window.location.origin,
+            }),
+          });
+
+          const tokenData = await tokenResponse.json();
+
+          if (!tokenResponse.ok) {
+            console.error("Token exchange failed:", tokenData);
+            throw new Error(tokenData.error_description || "Failed to exchange authorization code");
+          }
+
+          this.accessToken = tokenData.access_token;
+
+          // Only update the refresh token if Google actually gave us a new one
+          if (tokenData.refresh_token) {
+            this.refreshToken = tokenData.refresh_token;
+          }
+
+          // Get user info
+          const userResponse = await fetch(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            {
+              headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+              },
+            }
+          );
+
+          const userInfo = await userResponse.json();
+
+          // Verify that the token has the required Drive permission
+          try {
+            // Try to list files in Drive to verify permission
+            const driveResponse = await fetch(
+              "https://www.googleapis.com/drive/v3/files?pageSize=1",
+              {
+                headers: {
+                  Authorization: `Bearer ${this.accessToken}`,
+                },
+              }
+            );
+
+            if (!driveResponse.ok) {
+              reject(new Error("Drive permission not granted"));
+              return;
+            }
+          } catch (driveError) {
+            reject(new Error("Drive permission not granted"));
+            return;
+          }
+
+          this.userInfo = userInfo;
+          this.isAuthenticated = true;
+
+          // Store when the token expires and schedule proactive refresh
+          if (tokenData.expires_in) {
+            this.tokenExpiresAt = Date.now() + tokenData.expires_in * 1000;
+          }
+
+          // Save state to localStorage
+          this.saveState();
+
+          // Schedule refresh before this token expires
+          this.scheduleTokenRefresh();
+
+          resolve(userInfo);
+        } catch (error) {
+          reject(error);
+        }
+      },
+      error_callback: (error) => {
+        console.error("OAuth error:", error);
+        reject(
+          new Error(
+            error.type === "popup_closed"
+              ? "Popup was closed"
+              : "Authentication failed"
+          )
+        );
+      },
+    });
+
+    console.log("🚀 Requesting authorization code...");
+    client.requestCode();
   }
 
   // Sign out user
