@@ -5,9 +5,9 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
 const springTransition = {
-    type: "spring",
-    stiffness: 300,
-    damping: 25,
+    type: "tween",
+    ease: "easeOut",
+    duration: 0.4,
 };
 
 const backdropVariants = {

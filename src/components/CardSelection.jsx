@@ -5,32 +5,28 @@ import { tarotCards } from "../data/tarotCards";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 25,
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.4,
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.9 },
+  hidden: { opacity: 0 },
   shuffling: {
     opacity: 1,
-    scale: [1, 1.1, 0.9, 1.05, 1],
-    rotate: [0, 5, -3, 2, 0],
-    y: [0, -10, 5, -5, 0],
+    scale: [1, 1.05, 1],
     transition: {
-      duration: 0.4,
+      duration: 0.3,
       ease: "easeInOut",
     },
   },
-  visible: (i) => ({
+  visible: {
     opacity: 1,
-    y: 0,
-    scale: 1,
     transition: {
-      delay: i * 0.02,
-      ...springTransition,
+      duration: 0.3,
+      ease: "easeOut",
     },
-  }),
+  },
 };
 
 // Shuffle function
@@ -58,9 +54,25 @@ function CardSelection({
   const [showQuickSelectModal, setShowQuickSelectModal] = useState(false);
   const [showManualSelectModal, setShowManualSelectModal] = useState(false);
   const [quickSelectInput, setQuickSelectInput] = useState("");
+  const [isPuterSignedIn, setIsPuterSignedIn] = useState(false);
   const modalRef = useRef(null);
   const quickSelectInputRef = useRef(null);
   const selectedCardsDisplayRef = useRef(null);
+
+  // Check Puter auth status
+  useEffect(() => {
+    const checkPuterAuth = async () => {
+      if (window.puter) {
+        try {
+          const signedIn = await window.puter.auth.isSignedIn();
+          setIsPuterSignedIn(signedIn);
+        } catch (e) {
+          console.error("Failed to check Puter auth status:", e);
+        }
+      }
+    };
+    checkPuterAuth();
+  }, []);
 
   // Initialize cards on mount
   useEffect(() => {
@@ -320,14 +332,61 @@ function CardSelection({
           {t("chooseCards", { count: maxCards })}
         </motion.h2>
 
-        <motion.p
-          className="caution-message"
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1rem",
+            marginBottom: "2rem",
+          }}
         >
-          <AlertTriangle size={16} className="icon-inline warning-icon" /> {t("puterSigninCaution")}
-        </motion.p>
+          <p className="caution-message" style={{ margin: 0 }}>
+            <AlertTriangle size={16} className="icon-inline warning-icon" /> {isPuterSignedIn ? t("puterAlreadySignedIn") : t("puterSigninCaution")}
+          </p>
+
+          {isPuterSignedIn && (
+            <button
+              onClick={async () => {
+                if (window.puter) {
+                  try {
+                    await window.puter.auth.signOut();
+                    window.location.reload();
+                  } catch (e) {
+                    console.error("Failed to sign out of Puter:", e);
+                  }
+                }
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                background: "rgba(157, 78, 221, 0.1)",
+                border: "1px solid var(--accent-primary)",
+                color: "var(--accent-primary)",
+                padding: "0.5rem 1rem",
+                borderRadius: "20px",
+                fontSize: "0.85rem",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--accent-primary)";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(157, 78, 221, 0.1)";
+                e.currentTarget.style.color = "var(--accent-primary)";
+              }}
+            >
+              {t("signOutPuter")}
+            </button>
+          )}
+        </motion.div>
 
         <motion.div
           className="selection-menu"
@@ -773,15 +832,6 @@ function CardSelection({
                       variants={cardVariants}
                       initial="hidden"
                       animate={isInitializing ? "shuffling" : "visible"}
-                      whileHover={{
-                        scale: 1.05,
-                        y: -8,
-                        transition: {
-                          duration: 0.05,
-                          ease: "linear",
-                        },
-                      }}
-                      whileTap={{ scale: 0.95 }}
                       transition={{
                         duration: 0.05,
                         ease: "linear",
@@ -797,9 +847,9 @@ function CardSelection({
                         }}
                         transition={{
                           duration: 0.6,
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 25,
+                          type: "tween",
+                          ease: "easeOut",
+                          duration: 0.4,
                         }}
                         style={{
                           transformStyle: "preserve-3d",

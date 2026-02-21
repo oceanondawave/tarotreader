@@ -36,9 +36,9 @@ try {
 }
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 25,
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.4,
 };
 
 function AnswerDisplay({
@@ -1066,11 +1066,10 @@ function AnswerDisplay({
               transition={{
                 delay: 0.5 + index * 0.15,
                 ...springTransition,
-                stiffness: 250,
               }}
               whileHover={{
                 scale: 1.05,
-                transition: { ...springTransition, stiffness: 400 },
+                transition: { ...springTransition },
               }}
               onClick={() => { setSelectedCard(card); setIsModalOpen(true); }}
               style={{ cursor: "pointer" }}

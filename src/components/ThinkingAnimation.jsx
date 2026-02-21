@@ -5,8 +5,8 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { tarotFacts } from "../data/tarotFacts";
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
+  type: "tween",
+  ease: "easeOut",
   damping: 20,
 };
 
@@ -196,8 +196,8 @@ function ThinkingAnimation() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{
-                type: "spring",
-                stiffness: 300,
+                type: "tween",
+                ease: "easeOut",
                 damping: 30,
               }}
             >

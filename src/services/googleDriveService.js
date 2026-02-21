@@ -7,7 +7,7 @@ class GoogleDriveService {
     this.userInfo = null;
     this.folderId = null;
     this.spreadsheetId = null;
-    this.clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    this.clientId = null; // Will be fetched from backend securely
     this.creatingFolder = false;
     this.creatingSpreadsheet = false;
     this.savingReading = false;
@@ -23,6 +23,7 @@ class GoogleDriveService {
       if (savedState) {
         const state = JSON.parse(savedState);
         this.accessToken = state.accessToken;
+        this.refreshToken = state.refreshToken || null;
         this.tokenExpiresAt = state.tokenExpiresAt || null;
         this.userInfo = state.userInfo;
         this.isAuthenticated = state.isAuthenticated;
@@ -53,6 +54,7 @@ class GoogleDriveService {
     try {
       const state = {
         accessToken: this.accessToken,
+        refreshToken: this.refreshToken,
         tokenExpiresAt: this.tokenExpiresAt,
         userInfo: this.userInfo,
         isAuthenticated: this.isAuthenticated,
@@ -85,45 +87,49 @@ class GoogleDriveService {
     }, refreshIn);
   }
 
-  // Silently refresh the access token without user interaction
-  silentRefresh() {
-    if (!this.isAuthenticated || !this.clientId) return;
+  // Silently refresh the access token without user interaction using the Refresh Token
+  async silentRefresh() {
+    if (!this.isAuthenticated || !this.clientId || !this.refreshToken) {
+      console.warn("Cannot silently refresh: Missing refresh token or client ID");
+      return false;
+    }
 
-    console.log("🔄 Proactively refreshing access token silently...");
+    console.log("🔄 Proactively refreshing access token via backend API...");
 
     try {
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: this.clientId,
-        scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
-        callback: (tokenResponse) => {
-          if (tokenResponse.error) {
-            console.warn("Proactive refresh failed (will retry):", tokenResponse.error);
-            // Retry in 2 minutes if proactive refresh fails
-            this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
-            return;
-          }
-
-          this.accessToken = tokenResponse.access_token;
-          if (tokenResponse.expires_in) {
-            this.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000;
-          }
-          this.saveState();
-          console.log("✅ Token proactively refreshed — stays signed in!");
-          // Schedule the next refresh
-          this.scheduleTokenRefresh();
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        error_callback: (error) => {
-          console.warn("Proactive silent refresh error (will retry):", error);
-          // Retry in 2 minutes
-          this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
-        }
+        body: JSON.stringify({
+          action: "refresh_token",
+          refresh_token: this.refreshToken,
+        }),
       });
 
-      client.requestAccessToken({ prompt: '' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.warn("Proactive refresh failed (will retry):", data.error_description || data.error);
+        this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
+        return false;
+      }
+
+      this.accessToken = data.access_token;
+      if (data.expires_in) {
+        this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
+      }
+
+      this.saveState();
+      console.log("✅ Token proactively refreshed via API — stays signed in!");
+      this.scheduleTokenRefresh();
+
+      return true;
     } catch (err) {
-      console.warn("Could not set up silent refresh:", err);
-      // Retry in 2 minutes
+      console.warn("Network error during silent refresh (will retry):", err);
       this.refreshTimer = setTimeout(() => this.silentRefresh(), 2 * 60 * 1000);
+      return false;
     }
   }
 
@@ -160,46 +166,17 @@ class GoogleDriveService {
       );
 
       if (response.status === 401) {
-        console.log("Token expired, attempting silent refresh...");
+        console.log("Token expired, attempting silent refresh via API...");
 
-        return new Promise((resolve, reject) => {
-          try {
-            const client = google.accounts.oauth2.initTokenClient({
-              client_id: this.clientId,
-              scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
-              callback: (tokenResponse) => {
-                if (tokenResponse.error) {
-                  console.warn("Silent refresh failed (will not sign out):", tokenResponse.error);
-                  // Don't sign out - just reject so the caller can handle it
-                  reject(new Error("Token refresh failed - please sign in again"));
-                  return;
-                }
+        const success = await this.silentRefresh();
 
-                this.accessToken = tokenResponse.access_token;
-                this.saveState();
-                console.log("Token successfully refreshed silently ✨");
-                resolve(true);
-              },
-              error_callback: (error) => {
-                console.warn("Silent refresh oauth error (will not sign out):", error);
+        if (!success) {
+          // If the backend API refresh failed (e.g. refresh token expired or was revoked)
+          // we must fall back to interactive sign in so the user can re-authorize.
+          throw new Error("INTERACTIVE_SIGN_IN_REQUIRED");
+        }
 
-                // If it's a popup_closed, popup_blocked, or user_logged_out error, we need interactive sign-in
-                if (error.type === 'popup_closed' || error.type === 'popup_blocked' || error.message?.includes('blocked')) {
-                  reject(new Error("INTERACTIVE_SIGN_IN_REQUIRED"));
-                } else {
-                  reject(new Error("Token refresh error - please sign in again"));
-                }
-              }
-            });
-
-            // Request token silently without a popup
-            client.requestAccessToken({ prompt: 'none' });
-          } catch (initError) {
-            console.warn("Error setting up silent refresh (will not sign out):", initError);
-            // Don't sign out - just propagate the error
-            reject(initError);
-          }
-        });
+        return true;
       }
 
       return true; // Token is still valid
@@ -219,13 +196,30 @@ class GoogleDriveService {
     }
   }
 
-  // Initialize Google API client
+  // Initialize Google API client (fetches client ID securely)
   async initialize() {
     try {
+      // 1. Fetch public Client ID from our secure Vercel backend
       if (!this.clientId) {
-        throw new Error(
-          "Google Client ID not found. Please set VITE_GOOGLE_CLIENT_ID in your .env file"
-        );
+        const authResponse = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_client_id" })
+        });
+
+        const textData = await authResponse.text();
+        let authData;
+        try {
+          authData = JSON.parse(textData);
+        } catch (e) {
+          console.error("Failed to parse /api/auth JSON response:", textData);
+          throw new Error(`/api/auth endpoint did not return valid JSON. Are you running the Vercel backend?`);
+        }
+
+        if (!authResponse.ok || !authData.clientId) {
+          throw new Error("Could not fetch Google Client ID from secure backend");
+        }
+        this.clientId = authData.clientId;
       }
 
       // Wait for Google Identity Services library to load
@@ -287,22 +281,52 @@ class GoogleDriveService {
 
       return new Promise((resolve, reject) => {
         console.log("🔧 Creating OAuth client...");
-        const client = google.accounts.oauth2.initTokenClient({
+        const client = google.accounts.oauth2.initCodeClient({
           client_id: this.clientId,
           scope:
             "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
           callback: async (response) => {
-            console.log("🔍 OAuth callback received:", response);
+            console.log("🔍 OAuth code received:", response);
+            if (response.error) {
+              reject(new Error(response.error));
+              return;
+            }
+
             try {
-              this.accessToken = response.access_token;
-              const token = response.access_token;
+              // Exchange the authorization code via our secure Vercel backend
+              const tokenResponse = await fetch("/api/auth", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  action: "exchange_code",
+                  code: response.code,
+                  redirect_uri: window.location.origin,
+                }),
+              });
+
+              const tokenData = await tokenResponse.json();
+
+              if (!tokenResponse.ok) {
+                console.error("Token exchange failed:", tokenData);
+                throw new Error(tokenData.error_description || "Failed to exchange authorization code");
+              }
+
+              this.accessToken = tokenData.access_token;
+
+              // Only update the refresh token if Google actually gave us a new one
+              // (Sometimes they only give it on the very first authorization)
+              if (tokenData.refresh_token) {
+                this.refreshToken = tokenData.refresh_token;
+              }
 
               // Get user info
               const userResponse = await fetch(
                 "https://www.googleapis.com/oauth2/v2/userinfo",
                 {
                   headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${this.accessToken}`,
                   },
                 }
               );
@@ -316,7 +340,7 @@ class GoogleDriveService {
                   "https://www.googleapis.com/drive/v3/files?pageSize=1",
                   {
                     headers: {
-                      Authorization: `Bearer ${token}`,
+                      Authorization: `Bearer ${this.accessToken}`,
                     },
                   }
                 );
@@ -336,14 +360,14 @@ class GoogleDriveService {
               this.isAuthenticated = true;
 
               // Store when the token expires and schedule proactive refresh
-              if (response.expires_in) {
-                this.tokenExpiresAt = Date.now() + response.expires_in * 1000;
+              if (tokenData.expires_in) {
+                this.tokenExpiresAt = Date.now() + tokenData.expires_in * 1000;
               }
 
               // Save state to localStorage
               this.saveState();
 
-              // Schedule silent refresh before this token expires
+              // Schedule refresh before this token expires
               this.scheduleTokenRefresh();
 
               resolve(userInfo);
@@ -363,8 +387,8 @@ class GoogleDriveService {
           },
         });
 
-        console.log("🚀 Requesting access token...");
-        client.requestAccessToken();
+        console.log("🚀 Requesting authorization code...");
+        client.requestCode();
       });
     } catch (error) {
       console.error("Sign in failed:", error);

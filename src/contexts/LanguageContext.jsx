@@ -55,6 +55,9 @@ const translations = {
       "Tất cả các lượt bói hiện được lưu trong Google Drive CỦA BẠN. Không có dữ liệu cá nhân nào được chia sẻ với bất kỳ ai khác.",
     puterSigninCaution:
       "Lưu ý: Bạn chỉ cần đăng ký rồi đăng nhập tài khoản Puter.com MỘT LẦN DUY NHẤT để xem kết quả bói bài.",
+    puterAlreadySignedIn:
+      "Bạn đã kết nối thành công với Puter. Bây giờ bạn có thể Xem Kết Quả bất kỳ lúc nào!",
+    signOutPuter: "Đăng xuất khỏi Puter (Bắt buộc Load trang lại)",
     revealReading: "Xem Kết Quả",
 
     // Google Drive Integration
@@ -240,6 +243,9 @@ const translations = {
       "All readings are now saved in YOUR Google Drive. No personal data is shared with anyone else.",
     puterSigninCaution:
       "Note: You only need to create an account and sign in to Puter.com ONCE to view the reading results.",
+    puterAlreadySignedIn:
+      "You are successfully connected to Puter. You can now Reveal Reading at any time!",
+    signOutPuter: "Sign out of Puter (Requires Reload)",
     revealReading: "Reveal Reading",
 
     // Google Drive Integration

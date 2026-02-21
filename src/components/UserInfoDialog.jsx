@@ -5,9 +5,9 @@ import { User, Check, Book, BarChart2, X } from "lucide-react";
 import googleDriveService from "../services/googleDriveService";
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 25,
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.4,
 };
 
 function UserInfoDialog({

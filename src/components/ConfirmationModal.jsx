@@ -3,9 +3,9 @@ import { useEffect, useRef } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 25,
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.4,
 };
 
 function ConfirmationModal({ isOpen, onConfirm, onCancel }) {

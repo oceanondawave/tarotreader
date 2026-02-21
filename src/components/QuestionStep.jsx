@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, GalleryVerticalEnd } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 25,
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.4,
 };
 
 function QuestionStep({ question, onQuestionChange, onContinue }) {
@@ -77,7 +77,7 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
           aria-label={t("continueToCards")}
           aria-disabled={!question.trim()}
         >
-          {t("continueToCards")}
+          <GalleryVerticalEnd size={20} /> {t("continueToCards")}
         </motion.button>
       </form>
     </motion.div>

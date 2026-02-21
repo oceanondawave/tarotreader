@@ -3,9 +3,9 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { Check } from "lucide-react";
 
 const springTransition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 25,
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.4,
 };
 
 function StepNavigation({ currentStep, onStepClick, hasQuestion }) {
