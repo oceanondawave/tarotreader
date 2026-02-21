@@ -2379,9 +2379,11 @@ select option:checked {
   gap: 0.5rem;
 }
 
-.sign-in-prompt-button:hover {
-  background: var(--accent-glow);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .sign-in-prompt-button:hover {
+    background: var(--accent-glow);
+    transform: translateY(-1px);
+  }
 }
 
 /* Responsive styles for Google Sign-in */
