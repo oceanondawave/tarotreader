@@ -3026,6 +3026,17 @@ select option:checked {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  white-space: nowrap;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .page-header h1 {
+    font-size: 1.25rem;
+    max-width: 60%;
+  }
 }
 
 .back-button {
