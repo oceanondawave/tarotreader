@@ -1,63 +1,20 @@
+import { google } from "googleapis";
+
 const SHEET_ID = process.env.REVIEWS_SHEET_ID;
 const SHEET_NAME = "Reviews";
 
-// Create a JWT for Google Service Account auth
-async function getServiceAccountToken() {
+// Initialize Google Auth using the Service Account Key
+async function getAuthClient() {
     const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
     if (!keyJson) throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY not configured");
 
-    const key = JSON.parse(keyJson);
-
-    const now = Math.floor(Date.now() / 1000);
-    const header = { alg: "RS256", typ: "JWT" };
-    const payload = {
-        iss: key.client_email,
-        scope: "https://www.googleapis.com/auth/spreadsheets",
-        aud: "https://oauth2.googleapis.com/token",
-        iat: now,
-        exp: now + 3600,
-    };
-
-    // Encode header and payload
-    const encode = (obj) =>
-        Buffer.from(JSON.stringify(obj))
-            .toString("base64")
-            .replace(/=/g, "")
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_");
-
-    const signingInput = `${encode(header)}.${encode(payload)}`;
-
-    // Sign with RSA private key using Web Crypto API (available in Vercel Edge/Node)
-    const { createSign } = await import("crypto");
-    const sign = createSign("RSA-SHA256");
-    sign.update(signingInput);
-    const signature = sign
-        .sign(key.private_key)
-        .toString("base64")
-        .replace(/=/g, "")
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_");
-
-    const jwt = `${signingInput}.${signature}`;
-
-    // Exchange JWT for access token
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            assertion: jwt,
-        }),
+    const credentials = JSON.parse(keyJson);
+    const auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
-    if (!tokenRes.ok) {
-        const err = await tokenRes.text();
-        throw new Error(`Failed to get service account token: ${err}`);
-    }
-
-    const { access_token } = await tokenRes.json();
-    return access_token;
+    return auth;
 }
 
 export default async function handler(req, res) {
@@ -74,28 +31,18 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "REVIEWS_SHEET_ID not configured" });
     }
 
-    // GET: Fetch all reviews (public read using API key or direct sheet access)
+    // GET: Fetch all reviews
     if (req.method === "GET") {
         try {
-            const apiKey = process.env.GOOGLE_API_KEY;
-            let url;
+            const auth = await getAuthClient();
+            const sheets = google.sheets({ version: "v4", auth });
 
-            if (apiKey) {
-                url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${apiKey}`;
-            } else {
-                // Try service account if no API key
-                const token = await getServiceAccountToken();
-                const sheetsRes = await fetch(
-                    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                const data = await sheetsRes.json();
-                return formatAndReturn(res, data);
-            }
+            const response = await sheets.spreadsheets.values.get({
+                spreadsheetId: SHEET_ID,
+                range: SHEET_NAME,
+            });
 
-            const sheetsRes = await fetch(url);
-            const data = await sheetsRes.json();
-            return formatAndReturn(res, data);
+            return formatAndReturn(res, response.data);
         } catch (error) {
             console.error("Error fetching reviews:", error);
             return res.status(500).json({ error: "Failed to fetch reviews" });
@@ -134,8 +81,8 @@ export default async function handler(req, res) {
                 return res.status(401).json({ error: "Token does not match claimed user" });
             }
 
-            // Get service account token to write to the sheet
-            const saToken = await getServiceAccountToken();
+            const auth = await getAuthClient();
+            const sheets = google.sheets({ version: "v4", auth });
 
             const timestamp = new Date().toISOString();
             const row = [
@@ -148,23 +95,15 @@ export default async function handler(req, res) {
                 profile.id || userInfo.id || "",
             ];
 
-            const appendRes = await fetch(
-                `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:G:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${saToken}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ values: [row] }),
-                }
-            );
-
-            if (!appendRes.ok) {
-                const err = await appendRes.json();
-                console.error("Sheets append error:", err);
-                return res.status(500).json({ error: "Failed to save review" });
-            }
+            await sheets.spreadsheets.values.append({
+                spreadsheetId: SHEET_ID,
+                range: `${SHEET_NAME}!A:G`,
+                valueInputOption: "USER_ENTERED",
+                insertDataOption: "INSERT_ROWS",
+                requestBody: {
+                    values: [row],
+                },
+            });
 
             return res.status(200).json({ success: true });
         } catch (error) {
