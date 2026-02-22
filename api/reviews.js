@@ -37,9 +37,11 @@ export default async function handler(req, res) {
             const auth = await getAuthClient();
             const sheets = google.sheets({ version: "v4", auth });
 
+            // Using just a column range causes it to query the first sheet by default
+            // This prevents "Unable to parse range" errors if their tab isn't named exactly "Reviews"
             const response = await sheets.spreadsheets.values.get({
                 spreadsheetId: SHEET_ID,
-                range: SHEET_NAME,
+                range: "A:G",
             });
 
             return formatAndReturn(res, response.data);
@@ -97,7 +99,7 @@ export default async function handler(req, res) {
 
             await sheets.spreadsheets.values.append({
                 spreadsheetId: SHEET_ID,
-                range: `${SHEET_NAME}!A:G`,
+                range: "A:G", // Exclude explicit sheet name to use default sheet
                 valueInputOption: "USER_ENTERED",
                 insertDataOption: "INSERT_ROWS",
                 requestBody: {
