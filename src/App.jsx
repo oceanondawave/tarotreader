@@ -589,25 +589,21 @@ function App() {
   // Show reviews pages
   if (reviewsView === "write") {
     return (
-      <div className="app">
-        <ReviewPage
-          isSignedIn={isGoogleSignedIn}
-          userInfo={googleUserInfo}
-          onBack={handleBackFromReviews}
-        />
-      </div>
+      <ReviewPage
+        isSignedIn={isGoogleSignedIn}
+        userInfo={googleUserInfo}
+        onBack={handleBackFromReviews}
+      />
     );
   }
 
   if (reviewsView === "all") {
     return (
-      <div className="app">
-        <AllReviewsPage
-          isSignedIn={isGoogleSignedIn}
-          onBack={handleBackFromReviews}
-          onWriteReview={handleGoToWriteReview}
-        />
-      </div>
+      <AllReviewsPage
+        isSignedIn={isGoogleSignedIn}
+        onBack={handleBackFromReviews}
+        onWriteReview={handleGoToWriteReview}
+      />
     );
   }
 

@@ -5309,6 +5309,11 @@ select option:checked {
   padding-bottom: 4rem;
 }
 
+/* Remove programmatic focus outline (orange border) */
+.review-page-wrapper main[tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* Page header title in review pages — gradient text to match app */
 .review-page-wrapper .page-header h1 {
   font-size: 1.5rem;
