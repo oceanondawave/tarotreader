@@ -14,6 +14,9 @@ import CardVerification from "./components/CardVerification";
 import GoogleSignIn from "./components/GoogleSignIn";
 import UserInfoDialog from "./components/UserInfoDialog";
 import SavedReadingsPage from "./components/SavedReadingsPage";
+import ReviewPage from "./components/ReviewPage";
+import AllReviewsPage from "./components/AllReviewsPage";
+import ReviewsPreview from "./components/ReviewsPreview";
 import { useLanguage } from "./contexts/LanguageContext";
 import { getTarotReading } from "./services/puterGeminiService";
 import googleDriveService from "./services/googleDriveService";
@@ -35,6 +38,7 @@ const pageTransition = {
 function App() {
   const { t, language } = useLanguage();
   const [showVerification, setShowVerification] = useState(false);
+  const [reviewsView, setReviewsView] = useState(null); // null | 'all' | 'write'
 
   // Google Drive Integration
   const [isGoogleSignedIn, setIsGoogleSignedIn] = useState(false);
@@ -86,10 +90,14 @@ function App() {
     restoreSignInState();
   }, []); // Run only once on mount
 
-  // Check for #/all-cards in URL
+  // Check for hash routes in URL
   useEffect(() => {
     const checkHash = () => {
-      setShowVerification(window.location.hash === "#/all-cards");
+      const hash = window.location.hash;
+      setShowVerification(hash === "#/all-cards");
+      if (hash === "#/reviews") setReviewsView("all");
+      else if (hash === "#/write-review") setReviewsView("write");
+      else setReviewsView(null);
     };
 
     checkHash();
@@ -97,6 +105,19 @@ function App() {
 
     return () => window.removeEventListener("hashchange", checkHash);
   }, []);
+
+  const handleGoToReviews = () => {
+    window.location.hash = "#/reviews";
+  };
+
+  const handleGoToWriteReview = () => {
+    window.location.hash = "#/write-review";
+  };
+
+  const handleBackFromReviews = () => {
+    window.location.hash = "";
+    setReviewsView(null);
+  };
 
   // Monitor Drive file creation status
   useEffect(() => {
@@ -553,7 +574,6 @@ function App() {
   if (showVerification) {
     return (
       <>
-        {/* User Info Dialog for signed-in users */}
         <UserInfoDialog
           isOpen={showUserInfoDialog}
           onClose={handleCloseUserInfo}
@@ -563,6 +583,31 @@ function App() {
         />
         <CardVerification />
       </>
+    );
+  }
+
+  // Show reviews pages
+  if (reviewsView === "write") {
+    return (
+      <div className="app">
+        <ReviewPage
+          isSignedIn={isGoogleSignedIn}
+          userInfo={googleUserInfo}
+          onBack={handleBackFromReviews}
+        />
+      </div>
+    );
+  }
+
+  if (reviewsView === "all") {
+    return (
+      <div className="app">
+        <AllReviewsPage
+          isSignedIn={isGoogleSignedIn}
+          onBack={handleBackFromReviews}
+          onWriteReview={handleGoToWriteReview}
+        />
+      </div>
     );
   }
 
@@ -820,6 +865,9 @@ function App() {
                 >
                   <AlertTriangle className="icon-inline warning-icon" size={14} /> {t("serviceCaution")}
                 </motion.p>
+
+                {/* Reviews Preview */}
+                <ReviewsPreview onViewAll={handleGoToReviews} />
               </motion.div>
             )}
 
