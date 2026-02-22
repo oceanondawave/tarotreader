@@ -5,8 +5,11 @@ import { StarRating } from "./ReviewPage";
 import { useLanguage } from "../contexts/LanguageContext";
 
 function ReviewCard({ review, index }) {
+    const { language } = useLanguage();
+    const locale = language === "vi" ? "vi-VN" : "en-US";
+
     const date = review.timestamp
-        ? new Date(review.timestamp).toLocaleDateString(undefined, {
+        ? new Date(review.timestamp).toLocaleDateString(locale, {
             year: "numeric",
             month: "short",
             day: "numeric",
