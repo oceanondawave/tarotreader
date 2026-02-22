@@ -57,12 +57,15 @@ function ReviewsPreview({ onViewAll, onLeaveReview }) {
             if (!res.ok) throw new Error("Failed to fetch");
             const data = await res.json();
             const r = data.reviews || [];
-            setReviews(r.slice(0, 3));
+
+            // Calculate average stars from ALL reviews before slicing
             if (r.length > 0) {
                 setAvgStars(
                     Math.round((r.reduce((sum, x) => sum + x.stars, 0) / r.length) * 10) / 10
                 );
             }
+
+            setReviews(r.slice(0, 3));
         } catch {
             // Silently fail — reviews section just won't show
         } finally {
@@ -82,30 +85,26 @@ function ReviewsPreview({ onViewAll, onLeaveReview }) {
             transition={{ duration: 0.5, ease: "easeOut" }}
             aria-label={t("recentReviews")}
         >
-            {reviews.length > 0 && (
-                <>
-                    <div className="reviews-preview-header">
-                        <div className="reviews-preview-title-row">
-                            <h2 className="reviews-preview-title">{t("recentReviews")}</h2>
-                            {avgStars > 0 && (
-                                <div className="reviews-avg-badge" aria-label={`${avgStars} out of 5 stars average`}>
-                                    <Star size={14} fill="currentColor" />
-                                    <span>{avgStars}</span>
-                                </div>
-                            )}
+            <div className="reviews-preview-header">
+                <div className="reviews-preview-title-row">
+                    <h2 className="reviews-preview-title">{t("recentReviews")}</h2>
+                    {avgStars > 0 && (
+                        <div className="reviews-avg-badge" aria-label={`${avgStars} out of 5 stars average`}>
+                            <Star size={14} fill="currentColor" />
+                            <span>{avgStars}</span>
                         </div>
-                        <p className="reviews-preview-subtitle">{t("reviewsSubtitle")}</p>
-                    </div>
+                    )}
+                </div>
+                <p className="reviews-preview-subtitle">{t("reviewsSubtitle")}</p>
+            </div>
 
-                    <div className="reviews-cards-grid">
-                        <AnimatePresence>
-                            {reviews.map((review, i) => (
-                                <ReviewCard key={review.id} review={review} index={i} />
-                            ))}
-                        </AnimatePresence>
-                    </div>
-                </>
-            )}
+            <div className="reviews-cards-grid">
+                <AnimatePresence>
+                    {reviews.map((review, i) => (
+                        <ReviewCard key={review.id} review={review} index={i} />
+                    ))}
+                </AnimatePresence>
+            </div>
 
             <div className="reviews-actions">
                 {reviews.length > 0 && (
