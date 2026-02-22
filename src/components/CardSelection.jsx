@@ -926,9 +926,6 @@ function CardSelection({
                             height: "100%",
                             WebkitBackfaceVisibility: "hidden",
                             backfaceVisibility: "hidden",
-                            WebkitTransform: "rotateY(180deg)",
-                            MozTransform: "rotateY(180deg)",
-                            msTransform: "rotateY(180deg)",
                             transform: "rotateY(180deg)",
                             borderRadius: "12px",
                             background: "white",
@@ -953,26 +950,7 @@ function CardSelection({
                               borderRadius: "6px",
                               marginBottom: "0.15rem",
                             }}
-                            onError={(e) => {
-                              e.target.style.display = "none";
-                              if (e.target.nextSibling) {
-                                e.target.nextSibling.style.display = "block";
-                              }
-                            }}
-                            onLoad={(e) => {
-                              // Ensure image is visible when loaded
-                              e.target.style.display = "block";
-                            }}
                           />
-                          <div
-                            style={{
-                              display: "none",
-                              fontSize: "1.5rem",
-                              color: "#9d4edd",
-                            }}
-                          >
-                            🃏
-                          </div>
                           <div
                             style={{
                               fontSize: "0.6rem",
