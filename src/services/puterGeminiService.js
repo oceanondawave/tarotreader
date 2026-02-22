@@ -84,6 +84,6 @@ Please provide the reading now:`;
             throw error;
         }
 
-        throw new Error("Failed to get reading from Gemini (Puter). Please try again.");
+        throw new Error("ERROR_API_FAILED");
     }
 }

@@ -171,6 +171,7 @@ const translations = {
     errorEnterQuestion: "Vui lòng nhập câu hỏi của bạn",
     errorApiKey: "",
     errorReading: "Không thể bói. Vui lòng thử lại.",
+    errorApiFailed: "Không thể kết nối với dịch vụ. Vui lòng kiểm tra internet và thử lại.",
     errorPuterAuth: "Không thể xác thực với Puter.com. Vui lòng đăng nhập để tiếp tục.",
     sheetDeletedMessage: "Bảng tính (spreadsheet) đã bị xóa khỏi Drive. Bạn đã bị đăng xuất.",
 
@@ -393,6 +394,7 @@ const translations = {
     errorEnterQuestion: "Please enter your question",
     errorApiKey: "",
     errorReading: "Unable to read. Please try again.",
+    errorApiFailed: "Failed to connect to the service. Please check your internet connection and try again.",
     errorPuterAuth: "Cannot authorize with Puter.com. Please sign in to continue.",
     sheetDeletedMessage: "Spreadsheet was deleted. You have been signed out.",
 

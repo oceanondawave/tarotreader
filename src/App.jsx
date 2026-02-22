@@ -544,6 +544,8 @@ function App() {
         let errorMessage = err.message || t("errorReading");
         if (errorMessage === "ERROR_PUTER_AUTH") {
           errorMessage = t("errorPuterAuth");
+        } else if (errorMessage === "ERROR_API_FAILED") {
+          errorMessage = t("errorApiFailed");
         }
         setError(errorMessage);
         // Do NOT reset selected cards or step, allowing user to try again
