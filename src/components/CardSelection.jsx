@@ -436,6 +436,22 @@ function CardSelection({
                 textAlign: "center",
               }}
             >
+              <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "1rem" }}>
+                {selectedCards.map((card, i) => (
+                  <img
+                    key={card.id || i}
+                    src={card.image}
+                    alt={language === 'vi' && card.name_vi ? `${card.name_vi} (${card.name})` : card.name}
+                    crossOrigin="anonymous"
+                    style={{
+                      height: "80px",
+                      borderRadius: "6px",
+                      boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+                      objectFit: "cover"
+                    }}
+                  />
+                ))}
+              </div>
               <p>
                 {t("cardsSelected", {
                   selected: selectedCards.length,
@@ -868,7 +884,7 @@ function CardSelection({
                           rotateY: isFlipped ? 180 : 0,
                         }}
                         transition={{
-                          duration: 0.6,
+                          duration: isShuffling ? 0 : 0.6,
                           type: "tween",
                           ease: "easeOut",
                         }}
