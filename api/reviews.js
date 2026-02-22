@@ -45,7 +45,7 @@ export default async function handler(req, res) {
             return formatAndReturn(res, response.data);
         } catch (error) {
             console.error("Error fetching reviews:", error);
-            return res.status(500).json({ error: "Failed to fetch reviews" });
+            return res.status(500).json({ error: "Failed to fetch reviews", details: error.message, stack: error.stack });
         }
     }
 
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true });
         } catch (error) {
             console.error("Error submitting review:", error);
-            return res.status(500).json({ error: "Failed to submit review" });
+            return res.status(500).json({ error: "Failed to submit review", details: error.message, stack: error.stack });
         }
     }
 
