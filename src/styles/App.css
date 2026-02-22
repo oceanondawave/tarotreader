@@ -4894,13 +4894,22 @@ select option:checked {
   font-size: 0.9rem;
   font-style: italic;
   margin: 0;
+  text-align: center;
+  width: 100%;
 }
 
 .reviews-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.reviews-cards-grid .review-card {
+  flex: 1 1 280px;
+  max-width: 360px;
+  width: 100%;
 }
 
 .reviews-actions {
@@ -5014,11 +5023,9 @@ select option:checked {
 
 .review-card-name {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .review-card-date {
@@ -5079,7 +5086,8 @@ select option:checked {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1;
+  line-height: 1.2;
+  padding-bottom: 0.1em;
 }
 
 .all-reviews-count {
