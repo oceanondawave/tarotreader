@@ -181,7 +181,7 @@ const translations = {
 
     // Reviews
     leaveAReview: "Viết Đánh Giá",
-    reviewSubtitle: "Chia sẻ trải nghiệm của bạn với cộng đồng Tarot",
+    reviewSubtitle: "Chia sẻ cảm nhận của bạn về ứng dụng này",
     yourRating: "Đánh giá của bạn",
     yourReview: "Nhận xét của bạn",
     reviewPlaceholder: "Chia sẻ trải nghiệm của bạn với ứng dụng...",
@@ -192,7 +192,7 @@ const translations = {
     signInToReview: "Đăng nhập để đánh giá",
     signInToReviewDesc: "Bạn cần đăng nhập bằng Google để để lại đánh giá.",
     recentReviews: "Đánh Giá Gần Đây",
-    reviewsSubtitle: "Ý kiến từ cộng đồng người dùng",
+    reviewsSubtitle: "Ý kiến của người dùng về ứng dụng",
     viewAllReviews: "Xem tất cả đánh giá",
     allReviews: "Tất Cả Đánh Giá",
     review: "đánh giá",
@@ -403,7 +403,7 @@ const translations = {
 
     // Reviews
     leaveAReview: "Leave a Review",
-    reviewSubtitle: "Share your experience with the Tarot community",
+    reviewSubtitle: "Share your thoughts on this app and its features",
     yourRating: "Your rating",
     yourReview: "Your review",
     reviewPlaceholder: "Share your experience with the app...",
@@ -414,7 +414,7 @@ const translations = {
     signInToReview: "Sign in to leave a review",
     signInToReviewDesc: "You need to sign in with Google to leave a review.",
     recentReviews: "Recent Reviews",
-    reviewsSubtitle: "What our users are saying",
+    reviewsSubtitle: "What users are saying about this app",
     viewAllReviews: "View all reviews",
     allReviews: "All Reviews",
     review: "review",
