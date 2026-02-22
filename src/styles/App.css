@@ -1577,6 +1577,7 @@ select option:checked {
 }
 
 .confirmation-modal {
+  position: relative;
   background: linear-gradient(135deg,
       rgba(26, 17, 42, 0.98) 0%,
       rgba(15, 10, 25, 0.98) 100%);

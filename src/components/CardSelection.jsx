@@ -508,17 +508,15 @@ function CardSelection({
               overflowY: "auto",
             }}
           >
-            <div style={{ position: "relative" }}>
-              <button
-                className="close-button"
-                onClick={() => setShowQuickSelectModal(false)}
-                aria-label={t("close")}
-                style={{ position: "absolute", top: 0, right: 0 }}
-              >
-                <X size={24} />
-              </button>
-              <h3><Target className="icon-inline" size={24} /> {t("quickSelectPlaceholder")}</h3>
-            </div>
+            <button
+              className="close-button"
+              onClick={() => setShowQuickSelectModal(false)}
+              aria-label={t("close")}
+              style={{ position: "absolute", top: "0.5rem", right: "0.5rem" }}
+            >
+              <X size={24} />
+            </button>
+            <h3><Target className="icon-inline" size={24} /> {t("quickSelectPlaceholder")}</h3>
             <p>
               {t("quickSelectDescription", { count: shuffledCards.length })}
             </p>
@@ -774,12 +772,12 @@ function CardSelection({
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="manual-header" style={{ position: "relative" }}>
+            <div className="manual-header">
               <button
                 className="close-button"
                 onClick={() => setShowManualSelectModal(false)}
                 aria-label={t("close")}
-                style={{ position: "absolute", top: "-0.5rem", right: "-0.5rem" }}
+                style={{ position: "absolute", top: "0.5rem", right: "0.5rem" }}
               >
                 <X size={24} />
               </button>
