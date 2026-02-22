@@ -11,22 +11,27 @@ const springTransition = {
 };
 
 const cardVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 0, y: 30, scale: 0.9 },
   shuffling: {
     opacity: 1,
+    y: 0,
     scale: [1, 1.05, 1],
     transition: {
       duration: 0.3,
       ease: "easeInOut",
     },
   },
-  visible: {
+  visible: (i) => ({
     opacity: 1,
+    y: 0,
+    scale: 1,
     transition: {
-      duration: 0.3,
-      ease: "easeOut",
+      delay: i * 0.02,
+      type: "spring",
+      stiffness: 300,
+      damping: 25,
     },
-  },
+  }),
 };
 
 // Shuffle function
