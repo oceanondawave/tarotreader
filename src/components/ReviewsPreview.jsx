@@ -74,9 +74,6 @@ function ReviewsPreview({ onViewAll, onLeaveReview }) {
         fetchReviews();
     }, [fetchReviews]);
 
-    if (loading) return null;
-    if (reviews.length === 0) return null;
-
     return (
         <motion.section
             className="reviews-preview"
@@ -85,36 +82,42 @@ function ReviewsPreview({ onViewAll, onLeaveReview }) {
             transition={{ duration: 0.5, ease: "easeOut" }}
             aria-label={t("recentReviews")}
         >
-            <div className="reviews-preview-header">
-                <div className="reviews-preview-title-row">
-                    <h2 className="reviews-preview-title">{t("recentReviews")}</h2>
-                    {avgStars > 0 && (
-                        <div className="reviews-avg-badge" aria-label={`${avgStars} out of 5 stars average`}>
-                            <Star size={14} fill="currentColor" />
-                            <span>{avgStars}</span>
+            {reviews.length > 0 && (
+                <>
+                    <div className="reviews-preview-header">
+                        <div className="reviews-preview-title-row">
+                            <h2 className="reviews-preview-title">{t("recentReviews")}</h2>
+                            {avgStars > 0 && (
+                                <div className="reviews-avg-badge" aria-label={`${avgStars} out of 5 stars average`}>
+                                    <Star size={14} fill="currentColor" />
+                                    <span>{avgStars}</span>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
-                <p className="reviews-preview-subtitle">{t("reviewsSubtitle")}</p>
-            </div>
+                        <p className="reviews-preview-subtitle">{t("reviewsSubtitle")}</p>
+                    </div>
 
-            <div className="reviews-cards-grid">
-                <AnimatePresence>
-                    {reviews.map((review, i) => (
-                        <ReviewCard key={review.id} review={review} index={i} />
-                    ))}
-                </AnimatePresence>
-            </div>
+                    <div className="reviews-cards-grid">
+                        <AnimatePresence>
+                            {reviews.map((review, i) => (
+                                <ReviewCard key={review.id} review={review} index={i} />
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </>
+            )}
 
             <div className="reviews-actions">
-                <button
-                    className="reviews-view-all-btn"
-                    onClick={onViewAll}
-                    aria-label={t("viewAllReviews")}
-                >
-                    {t("viewAllReviews")}
-                    <ChevronRight size={18} />
-                </button>
+                {reviews.length > 0 && (
+                    <button
+                        className="reviews-view-all-btn"
+                        onClick={onViewAll}
+                        aria-label={t("viewAllReviews")}
+                    >
+                        {t("viewAllReviews")}
+                        <ChevronRight size={18} />
+                    </button>
+                )}
                 <button
                     className="reviews-leave-btn"
                     onClick={onLeaveReview || onViewAll}
