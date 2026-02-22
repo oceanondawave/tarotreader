@@ -1221,7 +1221,7 @@ select option:checked {
   font-size: 1.2rem;
   font-weight: 700;
   font-family: "Playfair Display", serif;
-  color: #ffffff;
+  color: var(--text-secondary);
   border: 3px solid var(--border-color);
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(157, 78, 221, 0.2);
@@ -1232,11 +1232,13 @@ select option:checked {
 
 .step-item.active .step-circle {
   border-color: var(--accent-glow);
+  color: #ffffff;
   box-shadow: 0 0 25px rgba(157, 78, 221, 0.5);
 }
 
 .step-item.completed .step-circle {
   border-color: var(--accent-secondary);
+  color: #ffffff;
 }
 
 .step-label {
