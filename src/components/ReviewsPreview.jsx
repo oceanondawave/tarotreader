@@ -44,7 +44,7 @@ function ReviewCard({ review, index }) {
     );
 }
 
-function ReviewsPreview({ onViewAll }) {
+function ReviewsPreview({ onViewAll, onLeaveReview }) {
     const { t } = useLanguage();
     const [reviews, setReviews] = useState([]);
     const [avgStars, setAvgStars] = useState(0);
@@ -117,7 +117,7 @@ function ReviewsPreview({ onViewAll }) {
                 </button>
                 <button
                     className="reviews-leave-btn"
-                    onClick={onViewAll}
+                    onClick={onLeaveReview || onViewAll}
                     aria-label={t("leaveAReview")}
                 >
                     <Star size={16} />

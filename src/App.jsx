@@ -867,7 +867,7 @@ function App() {
                 </motion.p>
 
                 {/* Reviews Preview */}
-                <ReviewsPreview onViewAll={handleGoToReviews} />
+                <ReviewsPreview onViewAll={handleGoToReviews} onLeaveReview={handleGoToWriteReview} />
               </motion.div>
             )}
 
