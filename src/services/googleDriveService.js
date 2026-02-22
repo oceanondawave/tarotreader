@@ -154,37 +154,24 @@ class GoogleDriveService {
       throw new Error("No access token available");
     }
 
-    try {
-      // Try a simple API call to check if token is still valid
-      const response = await fetch(
-        "https://www.googleapis.com/oauth2/v1/userinfo",
-        {
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-          },
-        }
-      );
+    // Check if token expires in the next 1 minute (or already expired)
+    const isExpired = this.tokenExpiresAt && Date.now() >= this.tokenExpiresAt - 60000;
 
-      if (response.status === 401) {
-        console.log("Token expired, attempting silent refresh via API...");
+    if (isExpired) {
+      console.log("Token expired or expiring soon, attempting silent refresh...");
 
-        const success = await this.silentRefresh();
+      const success = await this.silentRefresh();
 
-        if (!success) {
-          // If the backend API refresh failed (e.g. refresh token expired or was revoked)
-          // we must fall back to interactive sign in so the user can re-authorize.
-          throw new Error("INTERACTIVE_SIGN_IN_REQUIRED");
-        }
-
-        return true;
+      if (!success) {
+        // If the backend API refresh failed (e.g. refresh token expired or was revoked)
+        // we must fall back to interactive sign in so the user can re-authorize.
+        throw new Error("INTERACTIVE_SIGN_IN_REQUIRED");
       }
 
-      return true; // Token is still valid
-    } catch (error) {
-      // Only propagate - never sign out automatically on network errors
-      console.warn("Token validation failed (will not sign out):", error.message);
-      throw error;
+      return true;
     }
+
+    return true; // Token is still valid
   }
 
   // Clear saved authentication state
@@ -799,7 +786,7 @@ class GoogleDriveService {
         await this.createOrFindSpreadsheet();
       }
 
-      const response = await fetch(
+      let response = await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/Readings!A:I`,
         {
           headers: {
@@ -807,6 +794,23 @@ class GoogleDriveService {
           },
         }
       );
+
+      if (!response.ok && response.status === 401) {
+        console.warn("getReadingsCount: 401 Unauthorized caught. Retrying...");
+        const success = await this.silentRefresh();
+        if (success) {
+          response = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/Readings!A:I`,
+            {
+              headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+              },
+            }
+          );
+        }
+      }
+
+      if (!response.ok) return 0;
 
       const data = await response.json();
       const rows = data.values || [];
@@ -862,7 +866,7 @@ class GoogleDriveService {
         await this.createOrFindSpreadsheet();
       }
 
-      const response = await fetch(
+      let response = await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/Readings!A:I`,
         {
           headers: {
@@ -870,6 +874,21 @@ class GoogleDriveService {
           },
         }
       );
+
+      if (!response.ok && response.status === 401) {
+        console.warn("401 Unauthorized caught. Token likely expired while Safari was backgrounded. Retrying...");
+        const success = await this.silentRefresh();
+        if (success) {
+          response = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/Readings!A:I`,
+            {
+              headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+              },
+            }
+          );
+        }
+      }
 
       if (!response.ok) {
         if (response.status === 401) {
