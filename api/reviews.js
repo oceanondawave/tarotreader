@@ -118,13 +118,13 @@ export default async function handler(req, res) {
 }
 
 function formatAndReturn(res, data) {
-    if (!data.values || data.values.length < 2) {
+    if (!data.values || data.values.length === 0) {
         return res.status(200).json({ reviews: [] });
     }
 
-    // Skip header row, map to objects, sort newest first
+    // Map rows to objects, sort newest first
+    // Note: We don't skip the first row here (.slice(1)) because the user's sheet might not have a header row
     const reviews = data.values
-        .slice(1)
         .map((row, index) => ({
             id: index,
             timestamp: row[0] || "",
@@ -135,7 +135,7 @@ function formatAndReturn(res, data) {
             picture: row[5] || "",
             userId: row[6] || "",
         }))
-        .filter((r) => r.review.trim())
+        .filter((r) => r.review && r.review.trim())
         .reverse(); // newest first
 
     return res.status(200).json({ reviews });
