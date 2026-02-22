@@ -11,20 +11,26 @@ function StarRating({ value, onChange, readOnly = false, size = 32 }) {
         <div
             className="star-rating"
             role={readOnly ? "img" : "radiogroup"}
-            aria-label={readOnly ? `${value} out of 5 stars` : "Star rating"}
+            aria-label={readOnly ? `${value} out of 5 stars` : "Select a star rating"}
         >
+            {!readOnly && (
+                <div className="sr-only" aria-live="polite">
+                    {value} out of 5 stars selected
+                </div>
+            )}
             {[1, 2, 3, 4, 5].map((star) => (
                 <button
                     key={star}
                     type="button"
+                    role={readOnly ? "presentation" : "radio"}
                     className={`star-btn ${readOnly ? "read-only" : ""}`}
                     onClick={() => !readOnly && onChange && onChange(star)}
                     onMouseEnter={() => !readOnly && setHovered(star)}
                     onMouseLeave={() => !readOnly && setHovered(0)}
                     aria-label={readOnly ? undefined : `${star} star${star > 1 ? "s" : ""}`}
-                    aria-pressed={!readOnly ? value >= star : undefined}
+                    aria-checked={!readOnly ? value === star : undefined}
                     disabled={readOnly}
-                    tabIndex={readOnly ? -1 : 0}
+                    tabIndex={readOnly ? -1 : (value === star ? 0 : -1)} // Radio group focus management
                 >
                     <Star
                         size={size}
