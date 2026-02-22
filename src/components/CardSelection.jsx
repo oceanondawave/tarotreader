@@ -54,7 +54,7 @@ function CardSelection({
   const { t, language } = useLanguage();
   const [shuffledCards, setShuffledCards] = useState([]);
   const [isShuffling, setIsShuffling] = useState(false);
-  const [flippedCards, setFlippedCards] = useState(new Set());
+  const [flippedCards, setFlippedCards] = useState(() => new Set(selectedCards.map(c => c.id)));
   const [isInitializing, setIsInitializing] = useState(true);
   const [showQuickSelectModal, setShowQuickSelectModal] = useState(false);
   const [showManualSelectModal, setShowManualSelectModal] = useState(false);
@@ -105,19 +105,7 @@ function CardSelection({
 
   // Sync flippedCards with selectedCards
   useEffect(() => {
-    if (selectedCards.length === 0) {
-      // Clear flipped cards when selection is cleared
-      setFlippedCards(new Set());
-    } else {
-      // Only keep flipped state for currently selected cards
-      const newFlippedCards = new Set();
-      selectedCards.forEach((card) => {
-        if (flippedCards.has(card.id)) {
-          newFlippedCards.add(card.id);
-        }
-      });
-      setFlippedCards(newFlippedCards);
-    }
+    setFlippedCards(new Set(selectedCards.map(c => c.id)));
   }, [selectedCards]);
 
   // Arrow key navigation for screen readers
