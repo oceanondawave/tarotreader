@@ -1603,6 +1603,32 @@ select option:checked {
   line-height: 1.6;
 }
 
+.close-button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+@media (prefers-color-scheme: light) {
+  .close-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
 .modal-buttons {
   display: flex;
   gap: 1rem;
@@ -1627,13 +1653,18 @@ select option:checked {
   color: var(--text-secondary);
 }
 
-.cancel-button:hover {
+.cancel-button:hover:not(.disabled) {
   background: rgba(255, 255, 255, 0.05);
   border-color: var(--text-secondary);
 }
 
+.cancel-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 @media (prefers-color-scheme: light) {
-  .cancel-button:hover {
+  .cancel-button:hover:not(.disabled) {
     background: rgba(0, 0, 0, 0.05);
   }
 }
