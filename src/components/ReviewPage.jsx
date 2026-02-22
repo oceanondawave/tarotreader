@@ -192,6 +192,7 @@ function ReviewPage({ isSignedIn, userInfo, onBack }) {
                                                 value={stars}
                                                 onChange={setStars}
                                                 size={36}
+                                                readOnly={isSubmitting}
                                             />
                                             {/* aria-live so screen readers announce the rating label */}
                                             <p
@@ -219,6 +220,7 @@ function ReviewPage({ isSignedIn, userInfo, onBack }) {
                                                 maxLength={500}
                                                 aria-required="true"
                                                 aria-describedby="review-char-count"
+                                                disabled={isSubmitting}
                                             />
                                             <div
                                                 id="review-char-count"
