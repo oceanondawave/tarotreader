@@ -1,6 +1,6 @@
 # 🔮 Mystical Tarot Reader
 
-A beautiful, modern React web app that provides AI-powered tarot readings using Chutes.ai API. Features a complete 78-card Tarot deck with fluid animations, system dark mode support, and Google Drive integration for automatic reading storage.
+A beautiful, modern React web app that provides AI-powered tarot readings using Puter. Features a complete 78-card Tarot deck with fluid animations, system dark mode support, and Google Drive integration for automatic reading storage.
 
 ## ✨ Features
 
