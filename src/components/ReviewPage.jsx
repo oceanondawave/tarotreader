@@ -252,7 +252,7 @@ function ReviewPage({ isSignedIn, userInfo, onBack }) {
                                         >
                                             {isSubmitting ? (
                                                 <>
-                                                    <div className="loading-spinner" aria-hidden="true" />
+                                                    <div className="btn-spinner" aria-hidden="true" />
                                                     <span className="sr-only">Submitting…</span>
                                                 </>
                                             ) : (

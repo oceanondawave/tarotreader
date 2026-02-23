@@ -47,6 +47,38 @@ function ReviewCard({ review, index }) {
     );
 }
 
+function ReviewSkeleton({ index }) {
+    return (
+        <motion.div
+            className="review-card review-card-skeleton"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.4, delay: index * 0.08 }}
+        >
+            <div className="review-card-header">
+                <div className="review-card-user">
+                    <div className="skeleton skeleton-avatar"></div>
+                    <div className="review-card-user-info" style={{ width: '100px' }}>
+                        <div className="skeleton skeleton-text" style={{ marginBottom: '4px' }}></div>
+                        <div className="skeleton skeleton-text short" style={{ height: '10px' }}></div>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '2px' }}>
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="skeleton" style={{ width: '16px', height: '16px', borderRadius: '50%' }}></div>
+                    ))}
+                </div>
+            </div>
+            <div className="review-card-body">
+                <div className="skeleton skeleton-text" style={{ marginTop: '12px' }}></div>
+                <div className="skeleton skeleton-text"></div>
+                <div className="skeleton skeleton-text short"></div>
+            </div>
+        </motion.div>
+    );
+}
+
 function ReviewsPreview({ onViewAll, onLeaveReview }) {
     const { t } = useLanguage();
     const [reviews, setReviews] = useState([]);
@@ -102,10 +134,16 @@ function ReviewsPreview({ onViewAll, onLeaveReview }) {
             </div>
 
             <div className="reviews-cards-grid">
-                <AnimatePresence>
-                    {reviews.map((review, i) => (
-                        <ReviewCard key={review.id} review={review} index={i} />
-                    ))}
+                <AnimatePresence mode="wait">
+                    {loading ? (
+                        [...Array(3)].map((_, i) => (
+                            <ReviewSkeleton key={`skeleton-${i}`} index={i} />
+                        ))
+                    ) : (
+                        reviews.map((review, i) => (
+                            <ReviewCard key={review.id} review={review} index={i} />
+                        ))
+                    )}
                 </AnimatePresence>
             </div>
 

@@ -137,7 +137,7 @@ const GoogleSignIn = ({
             aria-label={t("signInWithGoogle")}
           >
             {isLoading ? (
-              <div className="loading-spinner"></div>
+              <div className="btn-spinner"></div>
             ) : (
               <>
                 <Link className="google-icon" size={18} />
