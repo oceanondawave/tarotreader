@@ -219,14 +219,11 @@ function ReviewPage({ isSignedIn, userInfo, onBack }) {
                                                 rows={5}
                                                 maxLength={500}
                                                 aria-required="true"
-                                                aria-describedby="review-char-count"
                                                 disabled={isSubmitting}
                                             />
                                             <div
-                                                id="review-char-count"
                                                 className="review-char-count"
-                                                aria-live="polite"
-                                                aria-atomic="true"
+                                                aria-hidden="true"
                                             >
                                                 {review.length}/500
                                             </div>
