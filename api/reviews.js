@@ -90,8 +90,8 @@ export default async function handler(req, res) {
             const row = [
                 timestamp,
                 stars,
-                review.trim(),
-                profile.name || userInfo.name,
+                review.trim().normalize('NFC'),
+                (profile.name || userInfo.name || "").normalize('NFC'),
                 profile.email,
                 profile.picture || userInfo.picture || "",
                 profile.id || userInfo.id || "",
@@ -123,14 +123,13 @@ function formatAndReturn(res, data) {
     }
 
     // Map rows to objects, sort newest first
-    // Note: We don't skip the first row here (.slice(1)) because the user's sheet might not have a header row
     const reviews = data.values
         .map((row, index) => ({
             id: index,
             timestamp: row[0] || "",
             stars: parseInt(row[1]) || 5,
-            review: row[2] || "",
-            name: row[3] || "Anonymous",
+            review: row[2] ? row[2].normalize('NFC') : "",
+            name: row[3] ? row[3].normalize('NFC') : "Anonymous",
             email: row[4] || "",
             picture: row[5] || "",
             userId: row[6] || "",

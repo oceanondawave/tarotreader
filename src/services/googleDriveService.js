@@ -725,11 +725,11 @@ class GoogleDriveService {
           readingId,
           dateStr,
           timeStr,
-          readingData.question || "",
+          readingData.question ? readingData.question.normalize('NFC') : "",
           JSON.stringify(readingData.cards[0] || {}),
           JSON.stringify(readingData.cards[1] || {}),
           JSON.stringify(readingData.cards[2] || {}),
-          readingData.answer || "",
+          readingData.answer ? readingData.answer.normalize('NFC') : "",
           readingData.language || "vi",
         ],
       ];
@@ -927,9 +927,9 @@ class GoogleDriveService {
           id: row[0] || index + 1, // Use the ID from the sheet, fallback to index
           date: row[1] || "",
           time: row[2] || "",
-          question: row[3] || "",
+          question: row[3] ? row[3].normalize('NFC') : "",
           cards: cards,
-          answer: row[7] || "",
+          answer: row[7] ? row[7].normalize('NFC') : "",
           language: row[8] || "vi",
         };
       });

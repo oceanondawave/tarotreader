@@ -65,16 +65,18 @@ Please provide the reading now:`;
         // using gemini-3-flash-preview as requested for speed
         const response = await window.puter.ai.chat(prompt, { model: "gemini-3-flash-preview" });
 
+        let textResponse = "";
         if (typeof response === "string") {
-            return response;
+            textResponse = response;
         } else if (response?.message?.content) {
-            return response.message.content;
+            textResponse = response.message.content;
         } else if (response?.text) {
-            return response.text;
+            textResponse = response.text;
         } else {
-            // Fallback: try to stringify if it's an object we don't recognize
-            return JSON.stringify(response);
+            textResponse = JSON.stringify(response);
         }
+
+        return textResponse ? textResponse.normalize("NFC") : textResponse;
 
     } catch (error) {
         console.error("Puter Gemini API failed:", error.message);

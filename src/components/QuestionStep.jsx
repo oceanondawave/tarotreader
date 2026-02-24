@@ -57,7 +57,7 @@ function QuestionStep({ question, onQuestionChange, onContinue }) {
           className="question-textarea"
           placeholder={t("questionPlaceholder")}
           value={question}
-          onChange={(e) => onQuestionChange(e.target.value)}
+          onChange={(e) => onQuestionChange(e.target.value ? e.target.value.normalize('NFC') : '')}
           aria-label={t("yourQuestion")}
           rows={4}
           initial={{ opacity: 0, scale: 0.95 }}
